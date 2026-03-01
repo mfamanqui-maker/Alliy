@@ -1,32 +1,50 @@
-import VistaScene from './scenes/VistaScene.js';
-import InstruccionesScene from './scenes/InstruccionesScene.js';
-import EstadisticasScene from './scenes/EstadisticasScene.js';
-import CodigoScene from './scenes/CodigoScene.js';
-import FinScene from './scenes/FinScene.js';
-import TimeScene from './scenes/TimeScene.js';
+import VistaScene from './scenes/battles/VistaScene.js';
+import InstruccionesScene from './scenes/battles/InstruccionesScene.js';
+import EstadisticasScene from './scenes/battles/EstadisticasScene.js';
+import CodigoScene from './scenes/battles/CodigoScene.js';
+import FinScene from './scenes/battles/FinScene.js';
+import TimeScene from './scenes/battles/TimeScene.js';
 import MenuScene from './scenes/MenuScene.js';
-import MapaScene from './scenes/MapaScene.js';
+import globalMapScene from './scenes/maps/globalMapScene.js';
+import houseMapScene from './scenes/maps/houseMapScene.js';
 
 const config = {
   type: Phaser.AUTO,
   width: 1700,
   height: 900,
   backgroundColor: '#2d2d2d',
-  
+
   pixelArt: true,
   antialias: false,
   roundPixels: true,
 
   physics: {
-        default: 'arcade',
-        arcade: {
-            gravity: { y: 0 },
-            debug: false
-        }
+    default: 'arcade',
+    arcade: {
+      gravity: { y: 0 },
+      debug: false
+    }
   },
-  
 
-  scene: [MenuScene, MapaScene, VistaScene, EstadisticasScene, InstruccionesScene, CodigoScene,TimeScene , FinScene],
+
+  scene: [
+    MenuScene,
+    // ══════════════════════════════════
+    //         Escenas de Mapas
+    // ══════════════════════════════════
+    globalMapScene,
+    houseMapScene,
+
+    // ══════════════════════════════════
+    //        Escenas de batalla
+    // ══════════════════════════════════
+    VistaScene,
+    EstadisticasScene,
+    InstruccionesScene,
+    CodigoScene,
+    TimeScene,
+    FinScene
+  ],
 }
 
 window.gameData = {
@@ -36,14 +54,14 @@ window.gameData = {
   // última jugada
   vigencia: null,
   // conteo de jugadas
-  jugada:0,
+  jugada: 0,
 
   // Arrays de proyectiles por resolver
   objetivos_A: [],   // proyectiles aliados  → apuntan a Enemigo_X
   objetivos_E: [],   // proyectiles enemigos → apuntan a Aliado_X
 
   // Arrays de entidades vivas
-  aliados_vivos:  ['Aliado_1', 'Aliado_2', 'Aliado_3'],
+  aliados_vivos: ['Aliado_1', 'Aliado_2', 'Aliado_3'],
   enemigos_vivos: ['Enemigo_1', 'Enemigo_2', 'Enemigo_3'],
 
   // Lista de botones
@@ -59,7 +77,7 @@ window.gameData = {
     aliado: null,
     enemigo: null
   },
-  
+
   // Aliados
   Aliado_1: {
     vidas: 3,

@@ -12,7 +12,11 @@ const config = {
   width: 1700,
   height: 900,
   backgroundColor: '#2d2d2d',
-  /*
+  
+  pixelArt: true,
+  antialias: false,
+  roundPixels: true,
+
   physics: {
         default: 'arcade',
         arcade: {
@@ -20,9 +24,9 @@ const config = {
             debug: false
         }
   },
-  */
+  
 
-  scene: [VistaScene, EstadisticasScene, InstruccionesScene, CodigoScene,TimeScene , FinScene],
+  scene: [MenuScene, MapaScene, VistaScene, EstadisticasScene, InstruccionesScene, CodigoScene,TimeScene , FinScene],
 }
 
 window.gameData = {

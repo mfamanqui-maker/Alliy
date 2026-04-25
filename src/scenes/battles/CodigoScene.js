@@ -54,23 +54,23 @@ export default class CodigoScene extends Phaser.Scene {
             this.wg.fase = 'Objetivo?'
             this.data.enemigo = null
             this.refrescar()
-          } 
+          }
         }
       }
       if (Phaser.Input.Keyboard.JustDown(this.tecla5)) {
         this.seleccion(this.data.aliado, 5)
         if (this.wg.fase !== 'Error') {
-            this.wg.fase = 'Objetivo?'
-            this.data.enemigo = null
-            this.refrescar()
-        } 
+          this.wg.fase = 'Objetivo?'
+          this.data.enemigo = null
+          this.refrescar()
+        }
       }
 
       // Confirmar con ENTER cuando todos los aliados vivos tienen acción
       if (Phaser.Input.Keyboard.JustDown(this.teclaEnter) && this.confirmacion.length === this.wg.aliados_vivos.length) {
-        this.wg.Aliado_1.objetivo_anterior=null
-        this.wg.Aliado_2.objetivo_anterior=null
-        this.wg.Aliado_3.objetivo_anterior=null
+        this.wg.Aliado_1.objetivo_anterior = null
+        this.wg.Aliado_2.objetivo_anterior = null
+        this.wg.Aliado_3.objetivo_anterior = null
         this.wg.fase = 'PC'
         this.movePC()
 
@@ -80,9 +80,9 @@ export default class CodigoScene extends Phaser.Scene {
         })
 
         // Limpiar objetivo_cura DESPUÉS de accionar
-        this.wg.Aliado_1.objetivo_cura=null
-        this.wg.Aliado_2.objetivo_cura=null
-        this.wg.Aliado_3.objetivo_cura=null
+        this.wg.Aliado_1.objetivo_cura = null
+        this.wg.Aliado_2.objetivo_cura = null
+        this.wg.Aliado_3.objetivo_cura = null
         this.refrescar()
 
         // Contar escudos activos
@@ -102,13 +102,20 @@ export default class CodigoScene extends Phaser.Scene {
         }
       }
 
-    // ══════════════════════════════════════
-    // FASE: Mostrar acciones del PC
-    // ══════════════════════════════════════
+      // ══════════════════════════════════════
+      // FASE: Mostrar acciones del PC
+      // ══════════════════════════════════════
     } else if (this.wg.fase === 'PC') {
       if (Phaser.Input.Keyboard.JustDown(this.teclaEnter)) {
         // Verificar victoria o derrota
-        if (this.wg.enemigos_vivos.length === 0 || this.wg.aliados_vivos.length === 0) {
+        if (this.wg.enemigos_vivos.length === 0 || this.wg.aliados_vivos.length === 0) { 
+          /*
+
+          =============================================================
+                                LUGAR DE PRUEBAS
+          =============================================================
+
+          */
           this.scene.stop("instrucciones")
           this.scene.stop("time")
           this.scene.stop("vista")
@@ -128,13 +135,13 @@ export default class CodigoScene extends Phaser.Scene {
             this.wg[e].accion = null
           }
         })
-        this.wg.fase = 'Selección' 
+        this.wg.fase = 'Selección'
         this.wg.vigencia = null,
-        this.refrescar()
+          this.refrescar()
       }
-    // ══════════════════════════════════════
-    // FASE: Seleccionar aliado para curar
-    // ══════════════════════════════════════
+      // ══════════════════════════════════════
+      // FASE: Seleccionar aliado para curar
+      // ══════════════════════════════════════
     } else if (this.wg.fase === 'Curar?') {
       if (this.wg.seleccion.aliado) {
         const aliadoObjetivo = this.wg.seleccion.aliado
@@ -161,10 +168,10 @@ export default class CodigoScene extends Phaser.Scene {
           // Muerte definitiva, no se puede revivir
           this.wg.seleccion.aliado = null
         }
-      }  
-    // ══════════════════════════════════════
-    // FASE: Seleccionar objetivo del disparo
-    // ══════════════════════════════════════
+      }
+      // ══════════════════════════════════════
+      // FASE: Seleccionar objetivo del disparo
+      // ══════════════════════════════════════
     } else if (this.wg.fase === 'Objetivo?') {
       if (this.wg.seleccion.enemigo) {
         if (!(this.wg.enemigos_vivos.includes(`Enemigo_${this.data.aliado[7]}`)) && this.wg[this.data.aliado].accion === 5) {
@@ -190,11 +197,11 @@ export default class CodigoScene extends Phaser.Scene {
           this.wg.fase = 'Selección'
           this.refrescar()
         }
-     }
-  
-    // ══════════════════════════════════════
-    // FASE: Bloqueo de proyectiles enemigos
-    // ══════════════════════════════════════
+      }
+
+      // ══════════════════════════════════════
+      // FASE: Bloqueo de proyectiles enemigos
+      // ══════════════════════════════════════
     } else if (this.wg.fase === 'Bloqueo') {
       if (this.wg.seleccion.enemigo) {
         const enemigoClick = this.wg.seleccion.enemigo
@@ -227,8 +234,8 @@ export default class CodigoScene extends Phaser.Scene {
             this.wg.Aliado_1.accion = null
             this.wg.Aliado_2.accion = null
             this.wg.Aliado_3.accion = null
-            this.wg.vigencia = null, 
-            this.wg.fase = 'Selección'
+            this.wg.vigencia = null,
+              this.wg.fase = 'Selección'
             this.refrescar()
           }
         } else {
@@ -279,7 +286,7 @@ export default class CodigoScene extends Phaser.Scene {
         if (win[enemigo].vidas <= 0) {
           win.vigencia = 'activa'
           const posicion = win.enemigos_vivos.indexOf(enemigo)
-          this.wg.botonesEnemigos[Number(enemigo[8])-1].setFillStyle(0x131313)
+          this.wg.botonesEnemigos[Number(enemigo[8]) - 1].setFillStyle(0x131313)
           if (posicion !== -1) {
             win.enemigos_vivos.splice(posicion, 1)
           }
@@ -293,7 +300,7 @@ export default class CodigoScene extends Phaser.Scene {
       win[aliado].vidas--
       if (win[aliado].vidas <= 0) {
         const posicion = win.aliados_vivos.indexOf(aliado)
-        const idx = Number(aliado[7])-1
+        const idx = Number(aliado[7]) - 1
         if (!win[aliado].Z) {
           // Ya fue revivido, muerte definitiva
           this.wg.botonesAliados[idx].setFillStyle(0x000000)
@@ -344,7 +351,7 @@ export default class CodigoScene extends Phaser.Scene {
 
     // Registrar en confirmación (reemplazar si ya existía)
     let pertenecer = null
-    this.confirmacion.forEach((value,i) => {
+    this.confirmacion.forEach((value, i) => {
       if (aliado === this.confirmacion[i]) {
         pertenecer = true
         this.confirmacion.splice(i, 1)
@@ -359,7 +366,7 @@ export default class CodigoScene extends Phaser.Scene {
       } else {
         this.wg.objetivos_A.splice(this.wg.objetivos_A.indexOf(this.wg[aliado].objetivo_anterior), 1)
       }
-    } 
+    }
 
     if (!pertenecer) {
       this.confirmacion.push(aliado)
@@ -368,7 +375,7 @@ export default class CodigoScene extends Phaser.Scene {
     aliadoW.accion = tecla
     this.refrescar()
   }
-  
+
   // ══════════════════════════════════════
   // REFRESCAR: Redibujar escenas de UI
   // ══════════════════════════════════════
@@ -446,7 +453,7 @@ export default class CodigoScene extends Phaser.Scene {
         this.wg[objetivo].vidas = 1
         this.wg[objetivo].Z = false
         this.wg.aliados_vivos.push(objetivo)
-        this.wg.botonesAliados[Number(objetivo[7])-1].setFillStyle(0x4B0082)
+        this.wg.botonesAliados[Number(objetivo[7]) - 1].setFillStyle(0x4B0082)
       } else {
         this.wg[objetivo].vidas++
       }
@@ -460,13 +467,13 @@ export default class CodigoScene extends Phaser.Scene {
     if (tecla === 4) {
       if (this.wg.enemigos_vivos.includes(`Enemigo_${aliado[7]}`)) {
         objetivos.push(`Enemigo_${aliado[7]}`)
-      } 
+      }
       aliadoW.balas--
     }
     if (tecla === 5) {
       if (this.wg.enemigos_vivos.includes(`Enemigo_${aliado[7]}`)) {
         objetivos.push(`Enemigo_${aliado[7]}`)
-      } 
+      }
       aliadoW.balas -= 2
     }
   }
@@ -486,34 +493,34 @@ export default class CodigoScene extends Phaser.Scene {
       this.wg[enemig].accion = nombres[tecla - 1]
       const objetivos = this.wg.objetivos_E
 
-          if (tecla === 1) {
-            this.seleccionDeObjetivo('curar')
-          }
-          if (tecla === 2) {
-            this.wg[enemig].escudo = true
-          }
-          if (tecla === 3) {
-            this.wg[enemig].balas++
-          }
-          if (tecla === 4) {
-            this.wg[enemig].balas--
-            if (this.wg.aliados_vivos.includes(`Aliado_${String(enemigos[i])[8]}`)) {
-              objetivos.push(`Aliado_${String(enemigos[i])[8]}`)
-            } else {
-              this.seleccionDeObjetivo ('disparar')
-            }
-          }
-          if (tecla === 5) {
-            this.wg[enemig].balas -= 2
+      if (tecla === 1) {
+        this.seleccionDeObjetivo('curar')
+      }
+      if (tecla === 2) {
+        this.wg[enemig].escudo = true
+      }
+      if (tecla === 3) {
+        this.wg[enemig].balas++
+      }
+      if (tecla === 4) {
+        this.wg[enemig].balas--
+        if (this.wg.aliados_vivos.includes(`Aliado_${String(enemigos[i])[8]}`)) {
+          objetivos.push(`Aliado_${String(enemigos[i])[8]}`)
+        } else {
+          this.seleccionDeObjetivo('disparar')
+        }
+      }
+      if (tecla === 5) {
+        this.wg[enemig].balas -= 2
 
-            if (this.wg.aliados_vivos.includes(`Aliado_${String(enemigos[i])[8]}`)) {
-              objetivos.push(`Aliado_${String(enemigos[i])[8]}`)
-              this.seleccionDeObjetivo ('disparar')
-            } else {
-              this.seleccionDeObjetivo ('disparar 2 veces')
-            }
-          }
-        
+        if (this.wg.aliados_vivos.includes(`Aliado_${String(enemigos[i])[8]}`)) {
+          objetivos.push(`Aliado_${String(enemigos[i])[8]}`)
+          this.seleccionDeObjetivo('disparar')
+        } else {
+          this.seleccionDeObjetivo('disparar 2 veces')
+        }
+      }
+
     })
     this.refrescar()
   }
@@ -590,7 +597,7 @@ export default class CodigoScene extends Phaser.Scene {
     }
   }
 
-  
+
   // ══════════════════════════════════════
   // CALCULO DE PRIORIDADES: Evaluar y elegir acción
   // ══════════════════════════════════════
@@ -608,35 +615,35 @@ export default class CodigoScene extends Phaser.Scene {
     // curar?
     const vidaTotalEnemigos = z.vidasEnemigos.Enemigo_1 + z.vidasEnemigos.Enemigo_2 + z.vidasEnemigos.Enemigo_3
     if (z.misCuras > 0 && vidaTotalEnemigos < 8) {
-      pCurar += (3-z.enemigosVivos.length)*(Math.random()*4)
-      pCurar += (7-vidaTotalEnemigos)*(Math.random()*2)
+      pCurar += (3 - z.enemigosVivos.length) * (Math.random() * 4)
+      pCurar += (7 - vidaTotalEnemigos) * (Math.random() * 2)
     }
     //bloquear?
-    if (m.misEscudos  > 0 && vidaTotalEnemigos < 8) {
-      if (m.balasAliados.Aliado_1 >= 2) pBloquear += (Math.random()*14)/3
-      if (m.balasAliados.Aliado_2 >= 2) pBloquear += (Math.random()*14)/3
-      if (m.balasAliados.Aliado_3 >= 2) pBloquear += (Math.random()*14)/3
-      pBloquear += (7-vidaTotalEnemigos)*(Math.random()*1.5)
+    if (m.misEscudos > 0 && vidaTotalEnemigos < 8) {
+      if (m.balasAliados.Aliado_1 >= 2) pBloquear += (Math.random() * 14) / 3
+      if (m.balasAliados.Aliado_2 >= 2) pBloquear += (Math.random() * 14) / 3
+      if (m.balasAliados.Aliado_3 >= 2) pBloquear += (Math.random() * 14) / 3
+      pBloquear += (7 - vidaTotalEnemigos) * (Math.random() * 1.5)
     }
     //recargar
-    if (m.balasAliados.Aliado_1 < 2) pRecargar += (Math.random()*10)/3
-    if (m.balasAliados.Aliado_2 < 2) pRecargar += (Math.random()*10)/3
-    if (m.balasAliados.Aliado_3 < 2) pRecargar += (Math.random()*10)/3
-    pRecargar += (vidaTotalEnemigos)*(Math.random())
+    if (m.balasAliados.Aliado_1 < 2) pRecargar += (Math.random() * 10) / 3
+    if (m.balasAliados.Aliado_2 < 2) pRecargar += (Math.random() * 10) / 3
+    if (m.balasAliados.Aliado_3 < 2) pRecargar += (Math.random() * 10) / 3
+    pRecargar += (vidaTotalEnemigos) * (Math.random())
 
     //disparo simple
     if (r.misBalas > 0) {
       pDisparar = 8
-      if (m.balasAliados.Aliado_1 >= 2) pDisparar -= (Math.random()*5)
-      if (m.balasAliados.Aliado_2 >= 2) pDisparar -= (Math.random()*5)
-      if (m.balasAliados.Aliado_3 >= 2) pDisparar -= (Math.random()*5)
+      if (m.balasAliados.Aliado_1 >= 2) pDisparar -= (Math.random() * 5)
+      if (m.balasAliados.Aliado_2 >= 2) pDisparar -= (Math.random() * 5)
+      if (m.balasAliados.Aliado_3 >= 2) pDisparar -= (Math.random() * 5)
     }
     //disparo doble 
     if (r.misBalas > 1) {
       pDispararDoble = 15
-      if (m.balasAliados.Aliado_1 >= 2) pDispararDoble -= (Math.random()*5)
-      if (m.balasAliados.Aliado_2 >= 2) pDispararDoble -= (Math.random()*5)
-      if (m.balasAliados.Aliado_3 >= 2) pDispararDoble -= (Math.random()*5)
+      if (m.balasAliados.Aliado_1 >= 2) pDispararDoble -= (Math.random() * 5)
+      if (m.balasAliados.Aliado_2 >= 2) pDispararDoble -= (Math.random() * 5)
+      if (m.balasAliados.Aliado_3 >= 2) pDispararDoble -= (Math.random() * 5)
     }
 
     // ── ELEGIR MÁXIMO ──
@@ -651,49 +658,49 @@ export default class CodigoScene extends Phaser.Scene {
     })
     return indiceMax + 1
   }
-  
+
 
   seleccionDeObjetivo(tipo) {
     if (tipo === 'curar') {
       const Enemigos = ['Enemigo_1', 'Enemigo_2', 'Enemigo_3']
-      const enemigoMasErido = this.seleccionarMenor (Enemigos, 'vidas', true)
+      const enemigoMasErido = this.seleccionarMenor(Enemigos, 'vidas', true)
       this.wg[this.el].curas--
-      if (this.wg[enemigoMasErido].vidas <= 0 ) {
+      if (this.wg[enemigoMasErido].vidas <= 0) {
         this.wg[enemigoMasErido].vidas = 1
         this.wg[enemigoMasErido].Z = false
         this.wg.enemigos_vivos.push(enemigoMasErido)
-        this.wg.botonesEnemigos[Number(enemigoMasErido[8])-1].setFillStyle(0x4B0082)
+        this.wg.botonesEnemigos[Number(enemigoMasErido[8]) - 1].setFillStyle(0x4B0082)
       } else {
         this.wg[enemigoMasErido].vidas++
       }
-    } else  if (tipo === 'disparar') {
-      const Aliados = ['Aliado_1', 'Aliado_2','Aliado_3']
-      const aliadoMasErido = this.seleccionarMenor (Aliados, 'vidas', false)
+    } else if (tipo === 'disparar') {
+      const Aliados = ['Aliado_1', 'Aliado_2', 'Aliado_3']
+      const aliadoMasErido = this.seleccionarMenor(Aliados, 'vidas', false)
       this.wg.objetivos_E.push(aliadoMasErido)
     } else if (tipo === 'disparar 2 veces') {
-      const Aliados = ['Aliado_1', 'Aliado_2','Aliado_3']
-      const aliadoMasErido = this.seleccionarMenor (Aliados, 'vidas', false)
+      const Aliados = ['Aliado_1', 'Aliado_2', 'Aliado_3']
+      const aliadoMasErido = this.seleccionarMenor(Aliados, 'vidas', false)
       this.wg.objetivos_E.push(aliadoMasErido)
       this.wg.objetivos_E.push(aliadoMasErido)
     }
   }
-  seleccionarMenor (array, cualidad, muertos) {
+  seleccionarMenor(array, cualidad, muertos) {
     let min = Infinity
     let minN;
     const w = this.wg
     if (muertos) {
-      array.forEach ((value) => {
-          if (w[value][cualidad] < min && w[value].Z) {
-            minN=value
-            min=w[value][cualidad]
-          }
+      array.forEach((value) => {
+        if (w[value][cualidad] < min && w[value].Z) {
+          minN = value
+          min = w[value][cualidad]
+        }
       })
     } else {
-      array.forEach ((value) => {
-          if (w[value][cualidad] < min && w.aliados_vivos.includes(value)) {
-            minN=value
-            min=w[value][cualidad]
-          }
+      array.forEach((value) => {
+        if (w[value][cualidad] < min && w.aliados_vivos.includes(value)) {
+          minN = value
+          min = w[value][cualidad]
+        }
       })
     }
     return minN

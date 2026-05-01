@@ -1,10 +1,9 @@
-import ControladorBatalla from './classes/battle/controladorBatalla.js';
-import Tablero from './classes/battle/tablero.js';
 import MenuScene from './scenes/MenuScene.js';
 import GlobalMapScene from './scenes/maps/GlobalMapScene.js';
 import HouseMapScene from './scenes/maps/HouseMapScene.js';
 import ShopMapScene from './scenes/maps/ShopMapScene.js';
 import Vista from './classes/battle/vista.js';
+import tableroScene from './scenes/battles/tableroScene.js';
 
 const config = {
   type: Phaser.AUTO,
@@ -36,6 +35,7 @@ const config = {
 
     //══════════════════Escenas de batalla══════════════════
     Vista,
+    tableroScene,
   ],
 }
 const game = new Phaser.Game(config);

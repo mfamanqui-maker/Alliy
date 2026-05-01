@@ -1,6 +1,6 @@
 import tablero from './tablero.js';
 
-export default class controladorBatalla extends Phaser.Scene {
+export default class controladorBatalla {
 
   #tablero
   #casillasEspeciales
@@ -9,7 +9,6 @@ export default class controladorBatalla extends Phaser.Scene {
 
 
   constructor(tablero, casillasEspeciales, equipos, reglas) {
-    super({ key : 'controladorBatalla' }); //pequeña trampita dx
     this.#tablero = tablero;
     this.#equipos = equipos;
     this.#reglas = reglas;
@@ -18,9 +17,7 @@ export default class controladorBatalla extends Phaser.Scene {
 
   CrearTablero() {
     const Tablero = new tablero(this.#tablero, this.#casillasEspeciales, this.#equipos); //PRIMER ERROR TONTO XD
-    this.scene.launch('tablero', { Tablero });
-    console.log(Tablero.arrayBidimencional);
-    console.log(this.#casillasEspeciales);
+    return Tablero.arrayBidimencional;  
   }
 }
 

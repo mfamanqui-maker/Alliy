@@ -45,12 +45,15 @@ export default class tableroScene extends Phaser.Scene {
   }
 
   zoom() {
+    const zoomMin = 0.25;
+    const zoomMax = 4;
+
     this.input.on("wheel", (pointer, gameObjects, deltaX, deltaY) => {
       const cam = this.cameras.main;
-    
+
       cam.zoom -= deltaY * 0.001;
-    
-      cam.zoom = Phaser.Math.Clamp(cam.zoom, 0.5, 2);
+
+      cam.zoom = Phaser.Math.Clamp(cam.zoom, zoomMin, zoomMax);
     });
   }
 

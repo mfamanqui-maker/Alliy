@@ -27,12 +27,11 @@ export function resolverClaseEnemigo(datos) {
 }
 
 /**
- * @param {{ Enemigos?: import('./bases/baseGeneral.js').DatosEntidad[] }} equipos
+ * @param {{ Enemigos?: import('./bases/baseGeneral.js').DatosEntidad[] }} lista
  * @returns {Map<number, import('./bases/baseGeneral.js').default>}
  */
-export function construirMapaEnemigosPorId(equipos) {
+export function construirMapaEnemigosPorId(lista) {
   const mapa = new Map();
-  const lista = equipos?.Enemigos ?? [];
   for (const row of lista) {
     const Clase = resolverClaseEnemigo(row);
     mapa.set(row.id, new Clase(row));
@@ -41,10 +40,10 @@ export function construirMapaEnemigosPorId(equipos) {
 }
 
 /**
- * @param {{ Enemigos?: import('./bases/baseGeneral.js').DatosEntidad[] }} equipos
+  * @param {{ Enemigos?: import('./bases/baseGeneral.js').DatosEntidad[] }} lista
  */
-export function crearRegistroEnemigos(equipos) {
-  const porId = construirMapaEnemigosPorId(equipos);
+export function crearRegistroEnemigos(lista) {
+  const porId = construirMapaEnemigosPorId(lista);
   return {
     porId,
     obtenerPorId(id) {

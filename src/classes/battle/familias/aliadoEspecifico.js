@@ -34,15 +34,14 @@ export function resolverClaseAliado(datos) {
 }
 
 /**
- * Construye `Map<id, instancia>` recorriendo `equipos.Aliados`.
+ * Construye `Map<id, instancia>` recorriendo `lista`.
  * Cada instancia es de la subclase correcta (herencia: BaseGeneral → familia → personaje).
  *
- * @param {{ Aliados?: import('./bases/baseGeneral.js').DatosEntidad[] }} equipos
+ * @param {{ Aliados?: import('./bases/baseGeneral.js').DatosEntidad[] }} lista
  * @returns {Map<number, import('./bases/baseGeneral.js').default>}
  */
-export function construirMapaAliadosPorId(equipos) {
+export function construirMapaAliadosPorId(lista) {
   const mapa = new Map();
-  const lista = equipos?.Aliados ?? [];
   for (const row of lista) {
     const Clase = resolverClaseAliado(row);
     mapa.set(row.id, new Clase(row));
@@ -53,11 +52,11 @@ export function construirMapaAliadosPorId(equipos) {
 /**
  * API cómoda: objeto con mapa y acceso por id (sin variables globales).
  *
- * @param {{ Aliados?: import('./bases/baseGeneral.js').DatosEntidad[] }} equipos
+ * @param {{ Aliados?: import('./bases/baseGeneral.js').DatosEntidad[] }} lista
  */
 
-export function crearRegistroAliados(equipos) {
-  const porId = construirMapaAliadosPorId(equipos);
+export function crearRegistroAliados(lista) {
+  const porId = construirMapaAliadosPorId(lista);
   return {
     porId,
     /** @param {number} id */

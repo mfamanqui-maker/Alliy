@@ -93,10 +93,10 @@ export function prepararSpriteEnTablero(sprite, tableroScene) {
   sprite.setDepth(8);
 }
 
-export function crearSpriteDesdeMolde(scene, x, y, molde) {
+export function crearSpriteDesdeMolde(scene, x, y, molde, orientacion) {
   const sprite = scene.add.sprite(x, y, molde.textureKey, molde.frame ?? 0)
     .setOrigin(0.5)
-    .setFlipX(true)
+    .setFlipX(orientacion === 'izquierda' ? false : true);
   if (molde.escala != null) {
     sprite.setScale(molde.escala);
   }

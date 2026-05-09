@@ -1,0 +1,84 @@
+{
+    "prueva1": {
+        "configTablero": {
+            "filas": 5,
+            "columnas": 5,
+            "casillaId": 1,
+            "tamaño": 400
+        },
+        "casillasEspeciales": [
+            { "id": 0, "posicion": { "x": 1, "y": 1 } },
+            { "id": 0, "posicion": { "x": 2, "y": 2 } }
+        ],
+        "equipos": {
+            "Aliados": [{
+              "id": 1,
+              "familia": "CuerpoACuerpo",
+              "arquetipo": "lumel",
+              "invetario": ["espada", "escudo"],
+              "nivel": 5,
+              "posicion": { "x": 1, "y": 1 }
+            }, {
+              "id": 2,
+              "familia": "Distancia",
+              "arquetipo": "brunn",
+              "invetario": ["espada", "escudo"],
+              "nivel": 3,
+              "posicion": { "x": 2, "y": "3" }
+            }, {
+              "id": 3,
+              "familia": "CuerpoACuerpo",
+              "arquetipo": "lumel",
+              "invetario": ["espada", "escudo"],
+              "nivel": 5,
+              "posicion": { "x": 1, "y": 5 }
+            }],
+    
+            "Enemigos": [{
+              "id": 4,
+              "familia": "CuerpoACuerpo",
+              "arquetipo": "soldado1",
+              "invetario": ["espada", "escudo"],
+              "nivel": 5,
+              "posicion": { "x": 5,    "y": 1 }
+            }, {
+              "id": 5,
+              "familia": "CuerpoACuerpo",
+              "arquetipo": "soldado1",
+              "invetario": ["espada", "escudo"],
+              "nivel": 5,
+              "posicion": { "x": 4, "y": 3 }
+            }, {
+              "id": 6,
+              "familia": "Distancia",
+              "arquetipo": "soldado1",
+              "invetario": ["espada", "escudo"],
+              "nivel": 5,
+              "posicion": { "x": 5, "y": 5 }
+            }]
+          },
+          "otros": {
+            "condicionesVictoria": "eliminar al equipo contrario",
+            "clima": "soleado",
+            "retiradas": true,
+            "fatal": true,
+            "destino": {
+              "victoria": {
+                "key":"globalMap",
+                "x" : 222,
+                "y": 690
+              },
+              "derrota": {
+                "key":"globalMap",
+                "x": 222,
+                "y": 690
+              },
+              "empate": {
+                "key":"globalMap",
+                "x": 222,
+                "y": 690
+              }
+            }
+        }
+    }
+}

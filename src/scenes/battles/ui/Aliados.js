@@ -40,6 +40,7 @@ export default class Aliados {
       col: this.data.posicion.x,
       fila: this.data.posicion.y,
       tamanoCasilla: tileSize,
+      orientacion: 'derecha',
     });
   }
 }

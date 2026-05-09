@@ -4,20 +4,22 @@ import tablero from './tablero.js';
  * La escena solo instancia esto, pasa datos y reacciona a eventos visuales.
  */
 export default class controladorBatalla {
-  #configTablero;
+  #tablero;
   #casillasEspeciales;
   #equipos;
-  #reglas;
+  #otros;
+  #scene;
 
-  constructor(configTablero, casillasEspeciales, equipos, reglas) {
-    this.#configTablero = configTablero;
+  constructor(scene, tablero, casillasEspeciales, equipos, otros) {
+    this.#tablero = tablero;
     this.#equipos = equipos;
-    this.#reglas  = reglas;
+    this.#otros   = otros;
+    this.#scene   = scene;
     this.#casillasEspeciales = casillasEspeciales;
   }
 
-  get reglas() {
-    return this.#reglas;
+  get otros() {
+    return this.#otros;
   }
 
   get equipos() {
@@ -31,10 +33,30 @@ export default class controladorBatalla {
    */
   CrearTablero() {
     const modelo = new tablero(
-      this.#configTablero,
+      this.#tablero,
       this.#casillasEspeciales,
       this.#equipos,
     );
-    return { arrayTablero: modelo.arrayBidimencional, tamaño: this.#configTablero.tamaño };
+    return { arrayTablero: modelo.arrayBidimencional, tamaño: this.#tablero.tamaño };
+  }
+
+  ramdomizarEnemigos(nivelMin, nivelMax) {
+    this.#equipos.Enemigos.forEach(enemigo => {
+      enemigo.nivel = Math.floor(Math.random() * (nivelMax - nivelMin + 1)) + nivelMin;
+    });
+    this.#equipos.Enemigos.forEach(enemigo => {
+      enemigo.posicion.x = Math.floor(Math.random() * this.#tablero.columnas) + 1;
+      enemigo.posicion.y = Math.floor(Math.random() * this.#tablero.filas) + 1;
+    });
+  }
+
+  iniciarBatalla() {
+    const tableroData = this.CrearTablero();
+    this.#scene.scene.launch('tablero', {
+      ArrayExportado: tableroData.arrayTablero,
+      tamaño: tableroData.tamaño,
+      controlador: this,
+    });
+    this.#scene.scene.launch('entidad', { equipos: this.equipos, arrayBidimencional: tableroData.arrayTablero });
   }
 }

@@ -2,6 +2,7 @@ import { crearRegistroAliados } from '../../classes/battle/familias/aliadoEspeci
 import { crearRegistroEnemigos } from '../../classes/battle/familias/enemigoEspecifico.js';
 import { precargarSpritesheet } from '../../classes/battle/familias/bases/phaserMoldFactory.js';
 import Aliados from './ui/Aliados.js';
+import Enemigos from './ui/Enemigos.js';
 
 export default class entidadScene extends Phaser.Scene {
   constructor() {
@@ -17,6 +18,8 @@ export default class entidadScene extends Phaser.Scene {
 
   preload() {
     precargarSpritesheet(this, 'lumelStatic', 'assets/images/LumelStatic.png', 64, 64);
+    precargarSpritesheet(this, 'brunnStatic', 'assets/images/BrunnStatic.png', 64, 64);
+    precargarSpritesheet(this, 'soldado1Static', 'assets/images/C1Static.png', 64, 64);
   }
 
   create() {
@@ -31,8 +34,8 @@ export default class entidadScene extends Phaser.Scene {
       this.arrayBidimencional = data.arrayBidimencional;
     }
 
-    const registroAliados = crearRegistroAliados(this.equipos);
-    const registroEnemigos = crearRegistroEnemigos(this.equipos);
+    const registroAliados = crearRegistroAliados(this.equipos.Aliados);
+    const registroEnemigos = crearRegistroEnemigos(this.equipos.Enemigos);
 
     this.aliados = [];
     this.enemigos = [];
@@ -47,13 +50,13 @@ export default class entidadScene extends Phaser.Scene {
       this.aliados.push(nuevoAliado);
     });
 
-
     this.equipos.Enemigos.forEach((entidad) => {
       const nuevoEnemigo = {
         data: entidad,
-        moldePhaser: '',
+        moldePhaser: new Enemigos(entidad, this),
         enemigoEspecifico: registroEnemigos.obtenerPorId(entidad.id),
       }
+      nuevoEnemigo.moldePhaser.iniciarEnemigo(nuevoEnemigo.enemigoEspecifico);
       this.enemigos.push(nuevoEnemigo);
     });
   }

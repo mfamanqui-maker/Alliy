@@ -47,7 +47,7 @@ export default class BaseGeneral {
 
   /** Override en personaje concreto para devolver molde + clave de anim estática. */
   obtenerConfigAnimacionEstatica() {
-    return null;
+    return null; //xD
   }
 
   /**
@@ -86,11 +86,11 @@ export default class BaseGeneral {
    * Si `obtenerConfigAnimacionEstatica()` devuelve `null`, solo actualiza `datos.posicion` y resuelve al instante.
    *
    * @param {Phaser.Scene} scene - Escena del **tablero** (misma cámara que zoom y pan de casillas)
-   * @param {{ col: number, fila: number, tamanoCasilla?: number }} opts
+   * @param {{ col: number, fila: number, tamanoCasilla?: number, orientacion?: string }} opts
    * @returns {Promise<BaseGeneral>}
    */
   ubicarEnCasillaAsync(scene, opts) {
-    const { col, fila, tamanoCasilla = 400 } = opts;
+    const { col, fila, tamanoCasilla = 400, orientacion } = opts;
     this.cancelarUbicacionAnimacion(); 
 
     this.datos.posicion = { x: col, y: fila };
@@ -105,7 +105,7 @@ export default class BaseGeneral {
     this._ubicarControl = control;
 
     if (!this.sprite) {
-      this.sprite = crearSpriteDesdeMolde(scene, x, y, config.molde);
+      this.sprite = crearSpriteDesdeMolde(scene, x, y, config.molde, orientacion);
     } else {
       this.sprite.setPosition(x, y);
     }

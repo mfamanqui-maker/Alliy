@@ -3,7 +3,14 @@ export default class tableroScene extends Phaser.Scene {
     super({ key: "tablero" });
     this.tileSize = 400;
     this.tableroData = [];
+    this.overlayBrillo = null;
+    this.tweenBrillo = null;
   }
+
+  preload() {
+    this.load.spritesheet('grass', 'assets/images/grass.png', { frameWidth: 46, frameHeight: 46 });
+  }
+
   create() {
     const ArrayPlano = this.scene.settings.data.ArrayExportado
     const tileSize = this.tileSize;
@@ -11,37 +18,30 @@ export default class tableroScene extends Phaser.Scene {
 
     this.celdas = [];
 
-    for (let y = 0; y < ArrayPlano.length; y++) { //Generar el tablero con Phaser
+    for (let y = 0; y < ArrayPlano.length; y++) {
       for (let x = 0; x < ArrayPlano[y].length; x++) {
-
-        const rect = this.add.graphics();
-        rect.fillStyle(0x212121, 1);
-        rect.lineStyle(6, 0x000000, 1);
-        rect.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
-        rect.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
-
-        this.celdas.push(rect);
-      };
-    };
-
-    for (let y = 0; y < ArrayPlano.length; y++) { //Incorporar la referencia de cada casilla Phaser al tablero lógico
-      for (let x = 0; x < ArrayPlano[y].length; x++) {
-        ArrayPlano[y][x].casillaPhaser = this.celdas[y * ArrayPlano[y].length + x]
+        if (ArrayPlano[y][x].id === 0) {
+          ArrayPlano[y][x].casillaPhaser = null;
+          continue;
+        }
+        const random = Phaser.Math.Between(0, 8);
+        const grass = this.add.sprite(x * tileSize, y * tileSize, 'grass', random).setScale(8.7);
+        grass.setSize(tileSize, tileSize);
+        grass.setOrigin(0, 0);
+        ArrayPlano[y][x].casillaPhaser = grass;
+        this.celdas.push(grass);
       }
     }
-    console.log(ArrayPlano)
 
     this.zoom();
     this.movimiento();
     this.seleccionarCasilla((col, fila) => {
-
-      setTimeout (() => {
-        this.redibujarCasilla(col, fila, this.tableroData, 0x212121)
-      }, 1000)
-
-      this.redibujarCasilla(col, fila, this.tableroData, 0x363636);
+      this.redibujarCasilla(col, fila, this.tableroData);
     });
-  
+
+    if (this.tableroData[0][0].entidad !== false) {
+      
+    }
   }
 
   zoom() {
@@ -68,30 +68,72 @@ export default class tableroScene extends Phaser.Scene {
 
   seleccionarCasilla(action) {
     this.input.on("pointerdown", (pointer) => {
-      const tileSize = 400;
-    
+      const tileSize = this.tileSize;
       const worldPoint = pointer.positionToCamera(this.cameras.main);
-    
-      const x = Math.floor(worldPoint.x / tileSize) + 1 > 0 ? Math.floor(worldPoint.x / tileSize) + 1 : false;
-      const y = Math.floor(worldPoint.y / tileSize) + 1 > 0 ? Math.floor(worldPoint.y / tileSize) + 1 : false;
-    
-      (x && y) && action(x, y); //elegante 
+
+      const col = Math.floor(worldPoint.x / tileSize) + 1;
+      const fila = Math.floor(worldPoint.y / tileSize) + 1;
+
+      if (col < 1 || fila < 1) return;
+      if (fila > this.tableroData.length || col > this.tableroData[fila - 1].length) return;
+
+      const casilla = this.tableroData[fila - 1][col - 1];
+      if (!casilla || casilla.id === 0) return;
+
+      action(col, fila);
+
+      if (casilla.entidad !== false) {
+        const instancia = casilla.entidad.aliadoEspecifico || casilla.entidad.enemigoEspecifico;
+        casilla.entidad.moldePhaser.coneccionGeneral(instancia, "this.controlador.acciones");
+      }
     });
   }
 
-  redibujarCasilla(col, fila, tablero, color) {
+  quitarBrillo() {
+    if (this.tweenBrillo) {
+      this.tweenBrillo.stop();
+      this.tweenBrillo.remove();
+      this.tweenBrillo = null;
+    }
+
+    if (this.overlayBrillo) {
+      this.overlayBrillo.destroy();
+      this.overlayBrillo = null;
+    }
+  }
+
+  redibujarCasilla(col, fila, tablero, duracionMs = 1800) {
     const x = col - 1;
     const y = fila - 1;
 
     if (!tablero?.[y]?.[x]?.casillaPhaser) return;
 
-    const casilla = tablero[y][x].casillaPhaser;
-    const tileSize = this.tileSize;
+    this.quitarBrillo();
 
-    casilla.clear();
-    casilla.fillStyle(color, 1);  
-    casilla.lineStyle(6, 0x000000, 1);
-    casilla.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
-    casilla.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
+    const sprite = tablero[y][x].casillaPhaser;
+    const tileSize = this.tileSize;
+    const px = x * tileSize;
+    const py = y * tileSize;
+
+    const overlay = this.add.rectangle(
+      px + tileSize / 2,
+      py + tileSize / 2,
+      tileSize,
+      tileSize,
+      0xffffff,
+      0.35
+    );
+    overlay.setDepth(sprite.depth + 1);
+    overlay.setBlendMode(Phaser.BlendModes.ADD);
+
+    this.overlayBrillo = overlay;
+
+    this.tweenBrillo = this.tweens.add({
+      targets: overlay,
+      alpha: 0,
+      duration: duracionMs,
+      ease: "Cubic.easeOut",
+      onComplete: () => this.quitarBrillo(),
+    });
   }
 }

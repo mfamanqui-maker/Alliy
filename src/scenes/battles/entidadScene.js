@@ -59,5 +59,12 @@ export default class entidadScene extends Phaser.Scene {
       nuevoEnemigo.moldePhaser.iniciarEnemigo(nuevoEnemigo.enemigoEspecifico);
       this.enemigos.push(nuevoEnemigo);
     });
+
+    this.aliados.forEach((aliado) => {
+      this.arrayBidimencional[aliado.data.posicion.y - 1][aliado.data.posicion.x - 1].entidad = aliado;
+    });
+    this.enemigos.forEach((enemigo) => {
+      this.arrayBidimencional[enemigo.data.posicion.y - 1][enemigo.data.posicion.x - 1].entidad = enemigo;
+    });
   }
 }

@@ -43,4 +43,11 @@ export default class Aliados {
       orientacion: 'derecha',
     });
   }
+
+  coneccionGeneral(aliadoEspecifico, pilaDetareas) {
+    console.log(aliadoEspecifico.etiquetaDebug());
+    console.log(aliadoEspecifico.familiaCampesinos());
+    console.log(aliadoEspecifico.pruebaDeConexion());
+    console.log(pilaDetareas);
+  }
 }

@@ -27,4 +27,8 @@ export default class Enemigos {
             orientacion: 'izquierda',
         });
     }
+
+    coneccionGeneral(enemigoEspecifico, pilaDetareas) {
+        console.log(pilaDetareas);
+    }
 }

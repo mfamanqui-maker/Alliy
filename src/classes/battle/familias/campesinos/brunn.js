@@ -23,4 +23,8 @@ export default class Brunn extends BaseCampesinos {
       animKey: 'brunn_static',
     };
   }
+
+  pruebaDeConexion() {
+    return ('exito', 'clase brunn');
+  }
 }

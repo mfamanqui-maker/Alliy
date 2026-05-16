@@ -7,52 +7,46 @@
             "tamaño": 400
         },
         "casillasEspeciales": [
-            { "id": 0, "posicion": { "x": 1, "y": 1 } },
-            { "id": 0, "posicion": { "x": 2, "y": 2 } }
+            { "id": 0, "posicion": { "x": 1, "y": 3 } },
+            { "id": 0, "posicion": { "x": 5, "y": 3 } }
         ],
         "equipos": {
             "Aliados": [{
               "id": 1,
-              "familia": "CuerpoACuerpo",
               "arquetipo": "lumel",
-              "invetario": ["espada", "escudo"],
+              "invetario": [],
               "nivel": 5,
               "posicion": { "x": 1, "y": 1 }
             }, {
               "id": 2,
-              "familia": "Distancia",
               "arquetipo": "brunn",
-              "invetario": ["espada", "escudo"],
+              "invetario": [],
               "nivel": 3,
               "posicion": { "x": 2, "y": "3" }
             }, {
               "id": 3,
-              "familia": "CuerpoACuerpo",
               "arquetipo": "lumel",
-              "invetario": ["espada", "escudo"],
+              "invetario": [],
               "nivel": 5,
               "posicion": { "x": 1, "y": 5 }
             }],
     
             "Enemigos": [{
               "id": 4,
-              "familia": "CuerpoACuerpo",
               "arquetipo": "soldado1",
-              "invetario": ["espada", "escudo"],
+              "invetario": [],
               "nivel": 5,
               "posicion": { "x": 5,    "y": 1 }
             }, {
               "id": 5,
-              "familia": "CuerpoACuerpo",
               "arquetipo": "soldado1",
-              "invetario": ["espada", "escudo"],
+              "invetario": [],
               "nivel": 5,
               "posicion": { "x": 4, "y": 3 }
             }, {
               "id": 6,
-              "familia": "Distancia",
               "arquetipo": "soldado1",
-              "invetario": ["espada", "escudo"],
+              "invetario": [],
               "nivel": 5,
               "posicion": { "x": 5, "y": 5 }
             }]
@@ -65,7 +59,7 @@
             "destino": {
               "victoria": {
                 "key":"globalMap",
-                "x" : 222,
+                "x": 222,
                 "y": 690
               },
               "derrota": {

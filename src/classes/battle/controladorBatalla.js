@@ -1,4 +1,5 @@
 import tablero from './tablero.js';
+import controladorTurnos from './controladorTurnos.js';
 /**
  * Orquestador de batalla (sin Phaser): tablero lógico, entidades y cola de acciones.
  * La escena solo instancia esto, pasa datos y reacciona a eventos visuales.
@@ -26,6 +27,10 @@ export default class controladorBatalla {
     return this.#equipos;
   }
 
+ /*  get arrayBidimencional() {
+    return this.arrayBidimencional;
+  } */
+
   /**
    * Genera el modelo de tablero y devuelve { arrayTablero, tamaño } para Phaser. 
    * ArrayTablero es un array bidimencional con las casillas del tablero.
@@ -40,16 +45,6 @@ export default class controladorBatalla {
     return { arrayTablero: modelo.arrayBidimencional, tamaño: this.#tablero.tamaño };
   }
 
-  ramdomizarEnemigos(nivelMin, nivelMax) {
-    this.#equipos.Enemigos.forEach(enemigo => {
-      enemigo.nivel = Math.floor(Math.random() * (nivelMax - nivelMin + 1)) + nivelMin;
-    });
-    this.#equipos.Enemigos.forEach(enemigo => {
-      enemigo.posicion.x = Math.floor(Math.random() * this.#tablero.columnas) + 1;
-      enemigo.posicion.y = Math.floor(Math.random() * this.#tablero.filas) + 1;
-    });
-  }
-
   iniciarBatalla() {
     const tableroData = this.CrearTablero();
     this.#scene.scene.launch('tablero', {
@@ -58,5 +53,7 @@ export default class controladorBatalla {
       controlador: this,
     });
     this.#scene.scene.launch('entidad', { equipos: this.equipos, arrayBidimencional: tableroData.arrayTablero });
+    /* this.controladorTurnos = new controladorTurnos(tableroData.arrayTablero, this.#equipos, this.#otros);
+    this.acciones = this.controladorTurnos.acciones; */
   }
 }

@@ -28,4 +28,8 @@ export default class Lumel extends BaseCampesinos {
       animKey: 'lumel_static',
     };
   }
+
+  pruebaDeConexion() {
+    return ('exito', 'clase lumel');
+  }
 }

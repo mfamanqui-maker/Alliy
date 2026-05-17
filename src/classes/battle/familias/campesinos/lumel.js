@@ -29,7 +29,14 @@ export default class Lumel extends BaseCampesinos {
     };
   }
 
-  pruebaDeConexion() {
-    return ('exito', 'clase lumel');
+  generarEstadisticas(aliadoEspecifico) {
+    const n = aliadoEspecifico.datos.nivel;
+    aliadoEspecifico.estadisticas = {
+      hp : 100 + 50 * n,
+      ataque : 10 + 5* n,
+      velocidad : 1,
+      escudos : 3,
+      curas : 1 + 2*n,
+    }
   }
 }

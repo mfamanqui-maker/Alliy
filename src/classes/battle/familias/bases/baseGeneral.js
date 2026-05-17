@@ -12,7 +12,6 @@
  */
 
 import { crearSpriteDesdeMolde, prepararSpriteEnTablero } from './phaserMoldFactory.js';
-
 /**
  * @typedef {import('./phaserMoldFactory.js').MoldeSprite} MoldeSprite
  */

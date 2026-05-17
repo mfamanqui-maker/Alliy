@@ -24,7 +24,15 @@ export default class Brunn extends BaseCampesinos {
     };
   }
 
-  pruebaDeConexion() {
-    return ('exito', 'clase brunn');
+  generarEstadisticas(aliadoEspecifico) {
+    const n = aliadoEspecifico.datos.nivel;
+    aliadoEspecifico.estadisticas = {
+      hp : 100 * n,
+      ataque : 10 * n,
+      velocidad : 10,
+      escudos : 10 * n,
+      curas : 10 * n,
+      balas : 10 * n,
+    }
   }
 }

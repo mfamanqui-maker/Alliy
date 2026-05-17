@@ -1,8 +1,9 @@
 import { crearRegistroAliados } from '../../classes/battle/familias/aliadoEspecifico.js';
 import { crearRegistroEnemigos } from '../../classes/battle/familias/enemigoEspecifico.js';
 import { precargarSpritesheet } from '../../classes/battle/familias/bases/phaserMoldFactory.js';
-import Aliados from './ui/Aliados.js';
-import Enemigos from './ui/Enemigos.js';
+import { precargarTodosLosTextos, registrarTodosLosFramesTexto } from './ui/GenerarTexto/index.js';
+import Aliados from './ui/Entidades/Aliados.js';
+import Enemigos from './ui/Entidades/Enemigos.js';
 
 export default class entidadScene extends Phaser.Scene {
   constructor() {
@@ -20,9 +21,12 @@ export default class entidadScene extends Phaser.Scene {
     precargarSpritesheet(this, 'lumelStatic', 'assets/images/LumelStatic.png', 64, 64);
     precargarSpritesheet(this, 'brunnStatic', 'assets/images/BrunnStatic.png', 64, 64);
     precargarSpritesheet(this, 'soldado1Static', 'assets/images/C1Static.png', 64, 64);
+    precargarTodosLosTextos(this);
   }
 
   create() {
+    registrarTodosLosFramesTexto(this);
+
     const data = this.scene.settings.data;
     if (this.equipos == null && data?.equipos != null) {
       this.equipos = data.equipos;

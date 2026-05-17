@@ -27,10 +27,6 @@ export default class controladorBatalla {
     return this.#equipos;
   }
 
- /*  get arrayBidimencional() {
-    return this.arrayBidimencional;
-  } */
-
   /**
    * Genera el modelo de tablero y devuelve { arrayTablero, tamaño } para Phaser. 
    * ArrayTablero es un array bidimencional con las casillas del tablero.
@@ -51,9 +47,10 @@ export default class controladorBatalla {
       ArrayExportado: tableroData.arrayTablero,
       tamaño: tableroData.tamaño,
       controlador: this,
+      pilaDetareas: this.pilaDetareas,
     });
     this.#scene.scene.launch('entidad', { equipos: this.equipos, arrayBidimencional: tableroData.arrayTablero });
-    /* this.controladorTurnos = new controladorTurnos(tableroData.arrayTablero, this.#equipos, this.#otros);
-    this.acciones = this.controladorTurnos.acciones; */
+    this.controladorTurnos = new controladorTurnos(tableroData.arrayTablero, this.#equipos, this.#otros);
+    this.pilaDetareas = this.controladorTurnos.acciones; 
   }
 }

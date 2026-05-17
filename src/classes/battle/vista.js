@@ -1,4 +1,5 @@
 import controladorBatalla from './controladorBatalla.js';
+import { precargarTodosLosTextos } from '../../scenes/battles/ui/GenerarTexto/index.js';
 
 export default class Vista extends Phaser.Scene {
   constructor() {
@@ -6,6 +7,7 @@ export default class Vista extends Phaser.Scene {
   }
   preload() {
     this.load.json('prueva', 'src/classes/battle/data/prueva.json');
+    precargarTodosLosTextos(this);
   }
   create() {
     const data = this.cache.json.get('prueva');

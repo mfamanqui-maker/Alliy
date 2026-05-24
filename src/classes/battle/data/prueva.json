@@ -7,9 +7,7 @@
             "tamaño": 400
         },
         "casillasEspeciales": [
-            { "id": 0, "posicion": { "x": 3, "y": 3 } },
-            { "id": 0, "posicion": { "x": 1, "y": 3 } },
-            { "id": 0, "posicion": { "x": 5, "y": 3 } }
+            { "id": 0, "posicion": { "x": 3, "y": 3 } }
         ],
         "equipos": {
             "Aliados": [{

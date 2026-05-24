@@ -29,7 +29,7 @@ export default class Lumel extends BaseCampesinos {
     };
   }
 
-  generarEstadisticas(aliadoEspecifico) {
+  propiedadesEspeciales(aliadoEspecifico) {
     const n = aliadoEspecifico.datos.nivel;
     aliadoEspecifico.estadisticas = {
       hp : 100 + 50 * n,
@@ -38,5 +38,11 @@ export default class Lumel extends BaseCampesinos {
       escudos : 3,
       curas : 1 + 2*n,
     }
+
+    aliadoEspecifico.listaDeAcciones = {
+      habilidades : ["Curar", "Escudar", "Descansar", "Atacar", "Dopar"],
+      objetos : ["Tomarbebida", "PonerTrampa"],
+      Movimiento : ["Rey1", "Restirada"]
+    };
   }
 }

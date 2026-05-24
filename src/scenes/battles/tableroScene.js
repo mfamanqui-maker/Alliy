@@ -1,9 +1,13 @@
+import tablero from '../../classes/battle/tablero.js';
 import {
   initAutotileConfig,
   precargarTexturasBorde,
   registrarActualizadorBordes,
   refrescarBordesTablero,
 } from './autotile/renderBordesTablero.js';
+import { abrirPanelEntidad } from './ui/PanelEntidad/index.js';
+
+const DOBLE_CLICK_MS = 320;
 
 export default class tableroScene extends Phaser.Scene {
   constructor() {
@@ -14,6 +18,10 @@ export default class tableroScene extends Phaser.Scene {
     this.overlayBrillo = null;
     this.tweenBrillo = null;
     this.actualizadorBordes = null;
+    this.entidadSeleccionada = null;
+    this._teclaEnterRegistrada = false;
+    this._idEntidadInicial = null;
+    this._ultimoClickEntidad = { entidad: null, t: 0 };
   }
 
   preload() {
@@ -73,9 +81,113 @@ export default class tableroScene extends Phaser.Scene {
 
     this.zoom();
     this.movimiento();
+    this._registrarTeclaEnter();
     this.seleccionarCasilla((col, fila) => {
       this.redibujarCasilla(col, fila, this.tableroData);
     });
+  }
+
+  _registrarTeclaEnter() {
+    if (this._teclaEnterRegistrada || !this.input?.keyboard) return;
+    this._teclaEnterRegistrada = true;
+    this.input.keyboard.on('keydown-ENTER', () => this._abrirPanelEntidadSeleccionada());
+  }
+
+  _abrirPanelEntidadSeleccionada() {
+    if (!this.entidadSeleccionada) return;
+    this._abrirPanelDetalle(this.entidadSeleccionada);
+  }
+
+  _cambiarEntidadSeleccionada(nuevaEntidad) {
+    if (this.entidadSeleccionada === nuevaEntidad) return;
+
+    if (this.entidadSeleccionada?.moldePhaser?.onDeseleccionar) {
+      this.entidadSeleccionada.moldePhaser.onDeseleccionar();
+    }
+
+    this.entidadSeleccionada = nuevaEntidad;
+
+    if (!this.entidadSeleccionada) return;
+
+    const instancia =
+      this.entidadSeleccionada.aliadoEspecifico || this.entidadSeleccionada.enemigoEspecifico;
+
+    this.entidadSeleccionada.moldePhaser?.onSeleccionar?.(
+      instancia,
+      this.scene.settings.data.controlador.pilaDetareas
+    );
+  }
+
+  _resolverBandoDeEntidad(entidad) {
+    if (!entidad) return 'Aliados';
+    if (entidad.aliadoEspecifico) return 'Aliados';
+    if (entidad.enemigoEspecifico) return 'Enemigos';
+    return 'Aliados';
+  }
+
+  _obtenerEscenaEntidad() {
+    return this.scene.get('entidad');
+  }
+
+  _resolverMoldePorId(id) {
+    const entidad = this._obtenerEscenaEntidad();
+    if (!entidad) return null;
+    const candidatos = [...(entidad.aliados ?? []), ...(entidad.enemigos ?? [])];
+    return candidatos.find((c) => c?.data?.id == id) ?? null;
+  }
+
+  _construirOpcionesPanel(entidad) {
+    const escenaEntidad = this._obtenerEscenaEntidad();
+    const equipos = escenaEntidad?.equipos ?? this.scene.settings.data?.equipos ?? { Aliados: [], Enemigos: [] };
+    const bando = this._resolverBandoDeEntidad(entidad);
+    const especifico = entidad.aliadoEspecifico ?? entidad.enemigoEspecifico;
+
+    if (typeof especifico?.propiedadesEspeciales === 'function') {
+      especifico.propiedadesEspeciales(especifico);
+    }
+    const datos = entidad.moldePhaser?.obtenerDatosDetalle?.();
+    if (!datos) return null;
+    this._idEntidadInicial = entidad.data?.id ?? especifico?.id ?? null;
+
+    return {
+      ...datos,
+      equipos,
+      bando,
+      idActual: entidad.data?.id ?? especifico?.id ?? null,
+      idInicial: this._idEntidadInicial,
+      escenaAPausar: this,
+      onResolverEntidad: (id) => {
+        const molde = this._resolverMoldePorId(id);
+        if (!molde) return null;
+        const inst = molde.aliadoEspecifico ?? molde.enemigoEspecifico;
+        if (typeof inst?.propiedadesEspeciales === 'function') {
+          inst.propiedadesEspeciales(inst);
+        }
+        const datosResueltos = molde.moldePhaser?.obtenerDatosDetalle?.();
+        if (!datosResueltos) return null;
+        return {
+          ...datosResueltos,
+          equipos,
+          idActual: id,
+        };
+      },
+    };
+  }
+
+  _abrirPanelDetalle(entidad) {
+    if (!entidad) return;
+    const escenaEntidad = this._obtenerEscenaEntidad();
+    if (!escenaEntidad) return;
+
+    const opciones = this._construirOpcionesPanel(entidad);
+    if (!opciones) return;
+
+    if (escenaEntidad.panelEntidadActivo) {
+      escenaEntidad.panelEntidadActivo.actualizar(opciones);
+      return;
+    }
+
+    abrirPanelEntidad(escenaEntidad, opciones);
   }
 
   zoom() {
@@ -115,12 +227,18 @@ export default class tableroScene extends Phaser.Scene {
       action(col, fila);
 
       if (casilla.entidad !== false) {
-        const instancia = casilla.entidad.aliadoEspecifico || casilla.entidad.enemigoEspecifico;
-        casilla.entidad.moldePhaser.coneccionGeneral(
-          instancia,
-          this.scene.settings.data.controlador.pilaDetareas
-        );
-        
+        const entidad = casilla.entidad;
+        const ahora = pointer.downTime ?? Date.now();
+        const esDoble =
+          this._ultimoClickEntidad.entidad === entidad &&
+          ahora - this._ultimoClickEntidad.t <= DOBLE_CLICK_MS;
+        this._ultimoClickEntidad = { entidad, t: ahora };
+
+        this._cambiarEntidadSeleccionada(entidad);
+
+        if (esDoble) {
+          this._abrirPanelDetalle(entidad);
+        }
       }
     });
   }
@@ -195,6 +313,7 @@ export default class tableroScene extends Phaser.Scene {
   }
 
   shutdown() {
+    this._cambiarEntidadSeleccionada(null);
     this.actualizadorBordes?.detener();
     this.quitarBrillo();
   }

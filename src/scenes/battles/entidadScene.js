@@ -2,6 +2,7 @@ import { crearRegistroAliados } from '../../classes/battle/familias/aliadoEspeci
 import { crearRegistroEnemigos } from '../../classes/battle/familias/enemigoEspecifico.js';
 import { precargarSpritesheet } from '../../classes/battle/familias/bases/phaserMoldFactory.js';
 import { precargarTodosLosTextos, registrarTodosLosFramesTexto } from './ui/GenerarTexto/index.js';
+import { precargarDescripcionesPanelEntidad } from './ui/PanelEntidad/index.js';
 import Aliados from './ui/Entidades/Aliados.js';
 import Enemigos from './ui/Entidades/Enemigos.js';
 
@@ -22,6 +23,7 @@ export default class entidadScene extends Phaser.Scene {
     precargarSpritesheet(this, 'brunnStatic', 'assets/images/BrunnStatic.png', 64, 64);
     precargarSpritesheet(this, 'soldado1Static', 'assets/images/C1Static.png', 64, 64);
     precargarTodosLosTextos(this);
+    precargarDescripcionesPanelEntidad(this);
   }
 
   create() {

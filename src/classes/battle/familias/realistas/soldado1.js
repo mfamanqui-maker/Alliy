@@ -24,7 +24,7 @@ export default class Soldado1 extends BaseRealistas {
     };
   }
 
-  generarEstadisticas(aliadoEspecifico) {
+  propiedadesEspeciales(aliadoEspecifico) {
     const n = aliadoEspecifico.datos.nivel;
     aliadoEspecifico.estadisticas = {
       hp : 200 * n,

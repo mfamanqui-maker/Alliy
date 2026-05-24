@@ -1,10 +1,9 @@
-export default class tablero{
-
-  #filas
-  #columnas
-  #casillaId
-  #casillasEspeciales
-  #equipos
+export default class tablero {
+  #filas;
+  #columnas;
+  #casillaId;
+  #casillasEspeciales;
+  #equipos;
 
   constructor(tablero, casillasEspeciales, equipos, key) {
     this.#filas     =   tablero.filas;

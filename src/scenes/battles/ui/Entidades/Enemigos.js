@@ -1,59 +1,54 @@
-import { abrirPanelInferior } from '../PanelInferior/index.js';
+import { construirDatosDetalle } from './Aliados.js';
 
 export default class Enemigos {
-    constructor(data, sceneEntidad) {
-        this.data = data;
-        this.sceneEntidad = sceneEntidad;
+  constructor(data, sceneEntidad) {
+    this.data = data;
+    this.sceneEntidad = sceneEntidad;
+    this.pilaDetareas = null;
+    this.enemigoEspecifico = null;
+  }
+
+  obtenerEscenaTablero() {
+    return this.sceneEntidad?.scene?.get?.('tablero');
+  }
+
+  iniciarEnemigo(enemigoEspecifico) {
+    this.enemigoEspecifico = enemigoEspecifico ?? null;
+    const tablero = this.obtenerEscenaTablero();
+    const tileSize = tablero?.tileSize ?? 400;
+
+    if (typeof enemigoEspecifico.construirAnimacionEstatica === 'function') {
+      enemigoEspecifico.construirAnimacionEstatica(this.sceneEntidad);
     }
 
-    obtenerEscenaTablero() {
-        return this.sceneEntidad?.scene?.get?.('tablero');
-    }
-    
-    iniciarEnemigo(enemigoEspecifico) {
-        const tablero = this.obtenerEscenaTablero();
-        const tileSize = tablero?.tileSize ?? 400;
-        
-        if (typeof enemigoEspecifico.construirAnimacionEstatica === 'function') {
-            enemigoEspecifico.construirAnimacionEstatica(this.sceneEntidad);
-        }
-
-        if (!tablero) {
-            return Promise.resolve();
-        }
-
-        return enemigoEspecifico.ubicarEnCasillaAsync(tablero, {
-            col: this.data.posicion.x,
-            fila: this.data.posicion.y,
-            tamanoCasilla: tileSize,
-            orientacion: 'izquierda',
-        });
+    if (!tablero) {
+      return Promise.resolve();
     }
 
-    coneccionGeneral(enemigoEspecifico, pilaDetareas) {
-        this.pilaDetareas = pilaDetareas;
-        this.enemigoEspecifico = enemigoEspecifico;
-        this.enemigoEspecifico.generarEstadisticas(this.enemigoEspecifico);
-        console.log(this.enemigoEspecifico.estadisticas);
-        const datos = {
-            imagen: 'assets/images/candle.png',
-            nombre: this.enemigoEspecifico.datos.arquetipo,
-            vida: {
-                vidaActual: this.enemigoEspecifico.estadisticas.hp,
-                vidaMaxima: this.enemigoEspecifico.estadisticas.hp,
-            },
-            estadisticas: [
-                {icono: 'assets/images/candle.png', nombre: 'ATK', cantidad: this.enemigoEspecifico.estadisticas.ataque},
-                {icono: 'assets/images/candle.png', nombre: 'DEF', cantidad: this.enemigoEspecifico.estadisticas.defensa}, 
-                {icono: 'assets/images/candle.png', nombre: 'VELOCIDAD', cantidad: this.enemigoEspecifico.estadisticas.velocidad}, 
-                {icono: 'assets/images/candle.png', nombre: 'NIVEL', cantidad: this.enemigoEspecifico.estadisticas.nivel},
-            ]
-        };
-        const scene = this.sceneEntidad;
-        this.panel = abrirPanelInferior(scene, datos, {
-            onCerrar: () => {
-                this.panel = null;
-            },
-        });
+    return enemigoEspecifico.ubicarEnCasillaAsync(tablero, {
+      col: this.data.posicion.x,
+      fila: this.data.posicion.y,
+      tamanoCasilla: tileSize,
+      orientacion: 'izquierda',
+    });
+  }
+
+  onSeleccionar(enemigoEspecifico, pilaDetareas) {
+    this.pilaDetareas = pilaDetareas;
+    this.enemigoEspecifico = enemigoEspecifico;
+    if (!this.enemigoEspecifico) return;
+    if (typeof this.enemigoEspecifico.propiedadesEspeciales === 'function') {
+      this.enemigoEspecifico.propiedadesEspeciales(this.enemigoEspecifico);
     }
+  }
+
+  onDeseleccionar() {}
+
+  obtenerDatosDetalle() {
+    if (!this.enemigoEspecifico) return null;
+    if (typeof this.enemigoEspecifico.propiedadesEspeciales === 'function') {
+      this.enemigoEspecifico.propiedadesEspeciales(this.enemigoEspecifico);
+    }
+    return construirDatosDetalle(this.enemigoEspecifico, 'Enemigos');
+  }
 }

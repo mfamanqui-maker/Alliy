@@ -5,7 +5,7 @@
     "archivoNull": "No se dibuja capa de borde (solo la hierba base).",
     "esquinasExteriorVsInterior": "En esquinas en L, si la casilla diagonal también es vacío → exterior; si es hierba → interior (hueco hacia dentro)."
   },
-  "rutaBase": "assets/images/bordes",
+  "rutaBase": "assets/images/battle/tablero",
 
   "porVecinosVacios": {
     "sinVaciosAlrededor": null,

@@ -4,7 +4,7 @@
  */
 export const CIRCLE_MENU = {
   textura: 'uiCircleMenu',
-  archivo: 'assets/images/Circle_menu.png',
+  archivo: 'assets/images/battle/panel/Circle_menu.png',
   anchoCelda: 32,
   altoCelda: 32,
   columnas: 8,
@@ -23,7 +23,7 @@ export const CIRCLE_MENU = {
  */
 export const ICONS_SHEET = {
   textura: 'uiIcons',
-  archivo: 'assets/images/Icons.png',
+  archivo: 'assets/images/battle/panel/Icons.png',
   anchoCelda: 16,
   altoCelda: 16,
   columnas: 6,

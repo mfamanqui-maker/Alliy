@@ -120,7 +120,7 @@ export const DESCRIPCIONES = {
   },
 };
 
-export const ICONO_FALLBACK = 'assets/images/candle.png';
+export const ICONO_FALLBACK = 'assets/images/system/candle.png';
 
 export function claveTexturaImagen(ruta) {
   return `panelEntidad_img_${String(ruta).replace(/[^a-zA-Z0-9]+/g, '_')}`;

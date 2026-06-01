@@ -1,3 +1,4 @@
+import Aliados from '../../../../scenes/battles/ui/Entidades/Aliados.js';
 import BaseCampesinos from '../bases/baseCampesinos.js';
 import { registrarAnimacionesDesdeSpritesheet } from '../bases/phaserMoldFactory.js';
 
@@ -37,12 +38,89 @@ export default class Lumel extends BaseCampesinos {
       velocidad : 1,
       escudos : 3,
       curas : 1 + 2*n,
+      ulti: true
     }
 
     aliadoEspecifico.listaDeAcciones = {
-      habilidades : ["Curar", "Escudar", "Descansar", "Atacar", "Dopar"],
-      objetos : ["Tomarbebida", "PonerTrampa"],
-      Movimiento : ["Rey1", "Restirada"]
+      habilidades : [ 
+      {
+        nombre: "verificar si tiene n",
+        ejecución: () => { console.log(n)},
+        condicional: true,
+        casoDeElección: null,
+        velocidad: 10
+      },
+
+      {
+        nombre: "curar",
+        ejecución: (aliadoObjetivo) => { aliadoObjetivo.estadisticas.hp += 25 + 10*n; aliadoEspecifico.estadisticas.curas -= 1; },
+        condicional: aliadoEspecifico.estadisticas.curas > 0,
+        casoDeElección: "Aliados",
+        velocidad: 15 + n*2
+      },
+
+      {
+        nombre: "escudar",
+        ejecución: (aliadoObjetivo) => { aliadoEspecifico.estadisticas.escudos -= 10; },
+        condicional: aliadoEspecifico.estadisticas.escudos > 0,
+        casoDeElección: 1,
+        velocidad: 10 + 3*(n-1)
+      },
+      
+      {
+        nombre: "atacar",
+        ejecución: (enemigoObjetivo) => { enemigoObjetivo.estadisticas.hp -= 25 + 10*n + aliadoEspecifico.estadisticas.ataque; },
+        condicional: true,
+        casoDeElección: "Enemigos",
+        velocidad: 15 + n-1
+      },
+
+      {
+        nombre: "descansar",
+        ejecución: () => { aliadoEspecifico.estadisticas.ataque += n + 5; },
+        condicional: true,
+        casoDeElección: null,
+        velocidad: 20 + 2*(n-1)
+      },
+
+      {
+        nombre: "dopar",
+        ejecución: () => { console.log("xD"); },
+        condicional: aliadoEspecifico.estadisticas.ulti,
+        casoDeElección: null,
+        velocidad: 25 + 2*n
+      }
+    ],
+
+      objetos : [{
+        nombre: "Tomarbebida",
+        ejecución: () => { aliadoEspecifico.estadisticas.hp += 30; },
+        condicional: true,
+        casoDeElección: 0,
+        velocidad: 10
+      }, {
+        nombre: "PonerTrampa",
+        ejecución: () => { console.log("PonerTrampa"); },
+        condicional: n > 3,
+        casoDeElección: 1,
+        velocidad: 10
+      }
+    ],
+
+      movimiento : [{
+        nombre: "Rey1",
+        ejecución: () => { console.log("Rey1"); },
+        condicional: true,
+        casoDeElección: 0,
+        velocidad: 10
+      }, {
+        nombre: "Restirada",
+        ejecución: () => { console.log("Restirada"); },
+        condicional: true,
+        casoDeElección: 1,
+        velocidad: 10
+      }
+    ]
     };
   }
 }

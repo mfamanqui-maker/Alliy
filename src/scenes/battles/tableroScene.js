@@ -26,7 +26,7 @@ export default class tableroScene extends Phaser.Scene {
 
   preload() {
     this.load.json('bordesFrames', 'src/scenes/battles/autotile/bordesFrames.json');
-    this.load.spritesheet('grass', 'assets/images/grass.png', { frameWidth: 46, frameHeight: 46 });
+    this.load.spritesheet('grass', 'assets/images/battle/tablero/grass.png', { frameWidth: 46, frameHeight: 46 });
   }
 
   create() {
@@ -99,7 +99,19 @@ export default class tableroScene extends Phaser.Scene {
   }
 
   _cambiarEntidadSeleccionada(nuevaEntidad) {
-    if (this.entidadSeleccionada === nuevaEntidad) return;
+    if (this.entidadSeleccionada === nuevaEntidad) {
+      const instancia =
+        nuevaEntidad.aliadoEspecifico || nuevaEntidad.enemigoEspecifico;
+      const seleccionado = nuevaEntidad.moldePhaser?.onSeleccionar?.(
+        instancia,
+        this.scene.settings.data.controlador.pilaDetareas,
+        nuevaEntidad
+      );
+      if (seleccionado === false) {
+        this.entidadSeleccionada = null;
+      }
+      return;
+    }
 
     if (this.entidadSeleccionada?.moldePhaser?.onDeseleccionar) {
       this.entidadSeleccionada.moldePhaser.onDeseleccionar();
@@ -114,7 +126,8 @@ export default class tableroScene extends Phaser.Scene {
 
     this.entidadSeleccionada.moldePhaser?.onSeleccionar?.(
       instancia,
-      this.scene.settings.data.controlador.pilaDetareas
+      this.scene.settings.data.controlador.pilaDetareas,
+      this.entidadSeleccionada
     );
   }
 
@@ -234,11 +247,12 @@ export default class tableroScene extends Phaser.Scene {
           ahora - this._ultimoClickEntidad.t <= DOBLE_CLICK_MS;
         this._ultimoClickEntidad = { entidad, t: ahora };
 
-        this._cambiarEntidadSeleccionada(entidad);
-
         if (esDoble) {
           this._abrirPanelDetalle(entidad);
+          return;
         }
+
+        this._cambiarEntidadSeleccionada(entidad);
       }
     });
   }

@@ -5,7 +5,7 @@ export default class MenuScene extends Phaser.Scene {
     super({ key: 'menu' });
   }
   preload() {
-    this.load.image('fondo', 'assets/images/menu.png');
+    this.load.image('fondo', 'assets/images/system/menu.png');
     precargarTextoPixel(this, 'teal');
   }
   create() {

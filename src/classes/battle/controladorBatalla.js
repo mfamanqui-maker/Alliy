@@ -1,5 +1,5 @@
 import tablero from './tablero.js';
-import controladorTurnos from './controladorTurnos.js';
+import controladorJugada from './controladorJugada.js';
 /**
  * Orquestador de batalla (sin Phaser): tablero lógico, entidades y cola de acciones.
  * La escena solo instancia esto, pasa datos y reacciona a eventos visuales.
@@ -49,8 +49,15 @@ export default class controladorBatalla {
       controlador: this,
       pilaDetareas: this.pilaDetareas,
     });
-    this.#scene.scene.launch('entidad', { equipos: this.equipos, arrayBidimencional: tableroData.arrayTablero });
-    this.controladorTurnos = new controladorTurnos(tableroData.arrayTablero, this.#equipos, this.#otros);
-    this.pilaDetareas = this.controladorTurnos.acciones; 
+
+    this.controladorTurnos = new controladorJugada(tableroData.arrayTablero, this.#equipos, this.#otros);
+    this.pilaDetareas = this.controladorTurnos.acciones;
+
+    this.#scene.scene.launch('entidad', { 
+      equipos: this.equipos,
+      arrayBidimencional: tableroData.arrayTablero,
+      controladorTurnos: this.controladorTurnos,
+    });
+    
   }
 }

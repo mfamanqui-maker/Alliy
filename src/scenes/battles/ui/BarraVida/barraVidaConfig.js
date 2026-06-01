@@ -1,7 +1,7 @@
 /** Imagen 451×121: corazón a la izquierda, zona negra a la derecha para el relleno. */
 export const BARRA_VIDA = {
   textura: 'barraDeVida',
-  archivo: 'assets/images/barraDeVida.png',
+  archivo: 'assets/images/battle/panel/barraDeVida.png',
   anchoImagen: 451,
   altoImagen: 121,
   /** Rectángulo rojo dentro del área negra (px en la textura original). */

@@ -24,7 +24,7 @@ export const MAPA_CARACTERES = {
 export const ESTILOS_TEXTO = {
   gris: {
     textura: 'textPixel',
-    archivo: 'assets/images/Text1.png',
+    archivo: 'assets/images/battle/panel/Text1.png',
     anchoCelda: 7,
     altoCelda: 9,
     altoBloque: 46,
@@ -32,7 +32,7 @@ export const ESTILOS_TEXTO = {
   },
   teal: {
     textura: 'textPixel',
-    archivo: 'assets/images/Text1.png',
+    archivo: 'assets/images/battle/panel/Text1.png',
     anchoCelda: 7,
     altoCelda: 9,
     altoBloque: 46,
@@ -40,7 +40,7 @@ export const ESTILOS_TEXTO = {
   },
   naranja: {
     textura: 'textPixel',
-    archivo: 'assets/images/Text1.png',
+    archivo: 'assets/images/battle/panel/Text1.png',
     anchoCelda: 7,
     altoCelda: 9,
     altoBloque: 46,
@@ -52,7 +52,7 @@ export const ESTILOS_TEXTO = {
 export const ESTILOS_TEXTO_GRUESO = {
   crema: {
     textura: 'textPixelGrueso',
-    archivo: 'assets/images/Text2.png',
+    archivo: 'assets/images/battle/panel/Text2.png',
     anchoCelda: 5,
     altoCelda: 6,
     altoBloque: 37,

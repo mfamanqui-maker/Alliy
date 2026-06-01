@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="7" nextobjectid="2">
  <tileset firstgid="1" name="sin texturas" tilewidth="16" tileheight="16" tilecount="0" columns="5">
-  <image source="../images/stone.png" width="88" height="96"/>
+  <image source="../images/maps/stone.png" width="88" height="96"/>
  </tileset>
  <tileset firstgid="1" name="sin textura" tilewidth="16" tileheight="16" tilecount="64" columns="8">
-  <image source="../images/tileset_1bit.png" width="128" height="128"/>
+  <image source="../images/maps/tileset_1bit.png" width="128" height="128"/>
  </tileset>
  <layer id="4" name="ground" width="50" height="50">
   <data encoding="csv">

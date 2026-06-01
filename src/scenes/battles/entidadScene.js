@@ -16,12 +16,13 @@ export default class entidadScene extends Phaser.Scene {
   init(data) {
     this.equipos = data?.equipos ?? null;
     this.arrayBidimencional = data?.arrayBidimencional ?? null;
+    this.controladorTurnos = data?.controladorTurnos ?? null;
   }
 
   preload() {
-    precargarSpritesheet(this, 'lumelStatic', 'assets/images/LumelStatic.png', 64, 64);
-    precargarSpritesheet(this, 'brunnStatic', 'assets/images/BrunnStatic.png', 64, 64);
-    precargarSpritesheet(this, 'soldado1Static', 'assets/images/C1Static.png', 64, 64);
+    precargarSpritesheet(this, 'lumelStatic', 'assets/images/battle/personajes/lumelStatic.png', 64, 64);
+    precargarSpritesheet(this, 'brunnStatic', 'assets/images/battle/personajes/brunnStatic.png', 64, 64);
+    precargarSpritesheet(this, 'soldado1Static', 'assets/images/battle/personajes/c1Static.png', 64, 64);
     precargarTodosLosTextos(this);
     precargarDescripcionesPanelEntidad(this);
   }
@@ -51,7 +52,47 @@ export default class entidadScene extends Phaser.Scene {
         data: entidad,
         moldePhaser: new Aliados(entidad, this),
         aliadoEspecifico: registroAliados.obtenerPorId(entidad.id),
+        acciones: null,
       }
+      nuevoAliado.aliadoEspecifico.propiedadesEspeciales(nuevoAliado.aliadoEspecifico);
+      const {habilidades, objetos, movimiento} = nuevoAliado.aliadoEspecifico.listaDeAcciones;
+      const acciones = [[], [], []];
+      
+      habilidades.forEach((habilidad) => {
+        const elementoAccion = {
+          nombre: habilidad.nombre,
+          ejecución: habilidad.ejecución,
+          condicional: habilidad.condicional,
+          casoDeElección: habilidad.casoDeElección,
+          velocidad: habilidad.velocidad,
+          orbePhaser: null,
+        }
+        acciones[0].push(elementoAccion);
+      });
+      objetos.forEach((objeto) => {
+        const elementoAccion = {
+          nombre: objeto.nombre,
+          ejecución: objeto.ejecución,
+          condicional: objeto.condicional,
+          casoDeElección: objeto.casoDeElección,
+          velocidad: objeto.velocidad,
+          orbePhaser: null,
+        }
+        acciones[1].push(elementoAccion);
+      });
+      movimiento.forEach((movimiento) => {
+        const elementoAccion = {
+          nombre: movimiento.nombre,
+          ejecución: movimiento.ejecución,
+          condicional: movimiento.condicional,
+          casoDeElección: movimiento.casoDeElección,
+          velocidad: movimiento.velocidad,
+          orbePhaser: null,
+        }
+        acciones[2].push(elementoAccion);
+      });
+      
+      nuevoAliado.acciones = acciones;
       nuevoAliado.moldePhaser.iniciarAliado(nuevoAliado.aliadoEspecifico);
       this.aliados.push(nuevoAliado);
     });
@@ -61,7 +102,44 @@ export default class entidadScene extends Phaser.Scene {
         data: entidad,
         moldePhaser: new Enemigos(entidad, this),
         enemigoEspecifico: registroEnemigos.obtenerPorId(entidad.id),
+        acciones: null,
       }
+      nuevoEnemigo.enemigoEspecifico.propiedadesEspeciales(nuevoEnemigo.enemigoEspecifico);
+      const {habilidades, objetos, movimiento} = nuevoEnemigo.enemigoEspecifico.listaDeAcciones;
+      const acciones = [[], [], []];
+      
+      habilidades.forEach((habilidad) => {
+        const elementoAccion = {
+          nombre: habilidad.nombre,
+          ejecución: habilidad.ejecución,
+          condicional: habilidad.condicional,
+          casoDeElección: habilidad.casoDeElección,
+          velocidad: habilidad.velocidad,
+        }
+        acciones[0].push(elementoAccion);
+      });
+      
+      objetos.forEach((objeto) => {
+        const elementoAccion = {
+          nombre: objeto.nombre,
+          ejecución: objeto.ejecución,
+          condicional: objeto.condicional,
+          casoDeElección: objeto.casoDeElección,
+          velocidad: objeto.velocidad,
+        }
+        acciones[1].push(elementoAccion);
+      });
+      movimiento.forEach((movimiento) => {
+        const elementoAccion = {
+          nombre: movimiento.nombre,
+          ejecución: movimiento.ejecución,
+          condicional: movimiento.condicional,
+          casoDeElección: movimiento.casoDeElección,
+          velocidad: movimiento.velocidad,
+        }
+        acciones[2].push(elementoAccion);
+      });
+      nuevoEnemigo.acciones = acciones;
       nuevoEnemigo.moldePhaser.iniciarEnemigo(nuevoEnemigo.enemigoEspecifico);
       this.enemigos.push(nuevoEnemigo);
     });

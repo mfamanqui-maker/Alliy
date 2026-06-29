@@ -1,23 +1,15 @@
-import {
-  CELDA,
-  ESTILOS_TEXTO,
-  ESTILOS_TEXTO_GRUESO,
-  MAPA_CARACTERES,
-} from './textoPixelConfig.js';
+import { ESTILOS_TEXTO } from './textoPixelConfig.js';
 
-const TODOS_ESTILOS = { ...ESTILOS_TEXTO, ...ESTILOS_TEXTO_GRUESO };
+const TODOS_ESTILOS = { ...ESTILOS_TEXTO };
 const FRAMES_REGISTRADOS = new Set();
+const ESTILO_DEFECTO = 'panel';
 
 function normalizarTexto(texto) {
   return String(texto ?? '').toUpperCase();
 }
 
-function obtenerCelda(char) {
-  return MAPA_CARACTERES[char] ?? MAPA_CARACTERES['?'] ?? null;
-}
-
 function nombreFrameLetra(estilo, char) {
-  return `tp_b${estilo.bloque}_u${char.charCodeAt(0)}`;
+  return `tp_${estilo.textura}_a${char.charCodeAt(0)}`;
 }
 
 function resolverOrigen(origen) {
@@ -34,24 +26,25 @@ function medidasCelda(estilo, escala) {
 }
 
 /**
- * Registra cada letra como frame en la textura (más fiable que setCrop en runtime).
+ * Registra cada carácter ASCII (32–126) como frame dentro de la textura,
+ * según la rejilla de columnas declarada en el estilo.
  */
 export function registrarFramesEstilo(scene, estilo) {
   if (!estilo || !scene.textures.exists(estilo.textura)) return false;
 
-  const id = `${estilo.textura}_b${estilo.bloque}`;
+  const id = `${estilo.textura}_ascii`;
   if (FRAMES_REGISTRADOS.has(id)) return true;
 
   const tex = scene.textures.get(estilo.textura);
   if (!tex) return false;
 
-  for (const [char, [col, fila]] of Object.entries(MAPA_CARACTERES)) {
-    const frameName = nombreFrameLetra(estilo, char);
+  const cols = estilo.columnas ?? 16;
+  for (let code = 32; code <= 126; code++) {
+    const frameName = nombreFrameLetra(estilo, String.fromCharCode(code));
     if (tex.has(frameName)) continue;
-
-    const x = col * estilo.anchoCelda;
-    const y = estilo.bloque * estilo.altoBloque + fila * estilo.altoCelda;
-    tex.add(frameName, 0, x, y, estilo.anchoCelda, estilo.altoCelda);
+    const col = code % cols;
+    const fila = Math.floor(code / cols);
+    tex.add(frameName, 0, col * estilo.anchoCelda, fila * estilo.altoCelda, estilo.anchoCelda, estilo.altoCelda);
   }
 
   FRAMES_REGISTRADOS.add(id);
@@ -59,14 +52,10 @@ export function registrarFramesEstilo(scene, estilo) {
 }
 
 export function registrarTodosLosFramesTexto(scene) {
-  if (!scene.textures.exists('textPixel')) return false;
-  let ok = true;
-  for (const estilo of Object.values(ESTILOS_TEXTO)) {
-    ok = registrarFramesEstilo(scene, estilo) && ok;
-  }
-  for (const estilo of Object.values(ESTILOS_TEXTO_GRUESO)) {
+  let ok = false;
+  for (const estilo of Object.values(TODOS_ESTILOS)) {
     if (scene.textures.exists(estilo.textura)) {
-      ok = registrarFramesEstilo(scene, estilo) && ok;
+      ok = registrarFramesEstilo(scene, estilo) || ok;
     }
   }
   return ok;
@@ -106,7 +95,7 @@ function aplicarOrigenAlContenedor(container, origen, estilo, escala) {
   return { ancho, alto };
 }
 
-export function precargarTextoPixel(scene, nombreEstilo = 'teal') {
+export function precargarTextoPixel(scene, nombreEstilo = ESTILO_DEFECTO) {
   const estilo = TODOS_ESTILOS[nombreEstilo];
   if (!estilo) {
     console.warn(`textoPixel: estilo "${nombreEstilo}" no existe.`);
@@ -129,7 +118,7 @@ export function precargarTodosLosTextos(scene) {
 }
 
 export function crearTexto(scene, texto, opciones = {}) {
-  const estiloNombre = opciones.estilo ?? 'teal';
+  const estiloNombre = opciones.estilo ?? ESTILO_DEFECTO;
   const estilo = TODOS_ESTILOS[estiloNombre];
 
   if (!estilo) {
@@ -152,6 +141,7 @@ export function crearTexto(scene, texto, opciones = {}) {
   const escala = opciones.escala ?? 2;
   const espaciado = opciones.espaciado ?? 0;
   const espacioLinea = opciones.espacioLinea ?? 1;
+  const tint = opciones.tint ?? estilo.tint ?? null;
   const { ancho: celdaW, alto: celdaH } = medidasCelda(estilo, escala);
   const pasoX = celdaW + espaciado * escala;
   const pasoY = celdaH + espacioLinea * escala;
@@ -172,11 +162,9 @@ export function crearTexto(scene, texto, opciones = {}) {
         continue;
       }
 
-      const celda = obtenerCelda(char);
-      if (!celda) continue;
-
-      const renderChar = MAPA_CARACTERES[char] ? char : '?';
-      const frameName = nombreFrameLetra(estilo, renderChar);
+      let code = char.charCodeAt(0);
+      if (code < 32 || code > 126) code = 63; // '?'
+      const frameName = nombreFrameLetra(estilo, String.fromCharCode(code));
       if (!tex.has(frameName)) continue;
 
       const letra = scene.make.image({
@@ -188,6 +176,7 @@ export function crearTexto(scene, texto, opciones = {}) {
       });
       letra.setOrigin(0, 0);
       letra.setScale(escala);
+      if (tint != null) letra.setTint(tint);
 
       container.add(letra);
       cursorX += pasoX;
@@ -206,7 +195,7 @@ export function crearTexto(scene, texto, opciones = {}) {
 }
 
 export function medirTexto(texto, opciones = {}) {
-  const estiloNombre = opciones.estilo ?? 'teal';
+  const estiloNombre = opciones.estilo ?? ESTILO_DEFECTO;
   const estilo = TODOS_ESTILOS[estiloNombre];
   if (!estilo) return { ancho: 0, alto: 0 };
 
@@ -235,4 +224,4 @@ export function medirTexto(texto, opciones = {}) {
   };
 }
 
-export { ESTILOS_TEXTO, ESTILOS_TEXTO_GRUESO, MAPA_CARACTERES, CELDA };
+export { ESTILOS_TEXTO };

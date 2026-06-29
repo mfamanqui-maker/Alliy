@@ -1,58 +1,20 @@
 /**
- * Lado izquierdo del panel: foto + barra de vida + texto Va/Vm + tooltip + botones.
+ * Lado izquierdo del panel (página izquierda de panel.png):
+ *   - foto dentro del recuadro gris de referencia
+ *   - barra de vida por imágenes (llena sobre vacía)
+ *   - texto Vida actual - máxima
+ *   - tooltip de descripción (caja marrón)
+ *   - dos botones marrones
  *
- * Devuelve un objeto con métodos para refrescar la foto, la vida y el tooltip.
- *
- * Callbacks:
- *   onIrAInicial — botón "Ir a entidad inicial" (también disparable por Tab)
- *   onHistorial  — botón "Ver historial" (también disparable por H)
- *
- * Tooltip:
- *   { mostrar(clave, nombre), limpiar() } se devuelve para que las listas lo usen.
+ * Recibe rectángulos ya calculados (en coords locales del container del panel)
+ * para cada bloque, alineados con el dibujo del fondo.
  */
 
-import { crearBarraVidaRect } from '../../BarraVida/index.js';
+import { crearBarraVidaImagen } from '../../BarraVida/index.js';
 import { crearTexto, medirTexto } from '../../GenerarTexto/index.js';
-import { COLORES, DEPTHS, LADO_IZQUIERDO, claveTexturaImagen } from '../panelEntidadConfig.js';
+import { ASSETS, DEPTHS, LADO_IZQUIERDO, claveTexturaImagen } from '../panelEntidadConfig.js';
 import { crearTooltipDescripcion } from './tooltipDescripcion.js';
-
-function crearBoton(scene, opciones) {
-  const { x, y, ancho, alto, texto, onClick } = opciones;
-  const container = scene.add.container(x, y);
-  container.setDepth(DEPTHS.botones);
-
-  const fondo = scene.add.rectangle(0, 0, ancho, alto, COLORES.botonFondo, 1);
-  fondo.setOrigin(0, 0);
-  fondo.setStrokeStyle(2, COLORES.botonBorde, 0.9);
-  fondo.setInteractive({ useHandCursor: true });
-  container.add(fondo);
-
-  const etiqueta = crearTexto(scene, texto, {
-    x: ancho / 2,
-    y: alto / 2,
-    estilo: LADO_IZQUIERDO.botonTextoEstilo,
-    escala: LADO_IZQUIERDO.botonTextoEscala,
-    origen: { x: 0.5, y: 0.5 },
-    depth: DEPTHS.botones + 1,
-  });
-  container.add(etiqueta);
-
-  fondo.on('pointerover', () => fondo.setFillStyle(COLORES.botonHover, 1));
-  fondo.on('pointerout', () => fondo.setFillStyle(COLORES.botonFondo, 1));
-  fondo.on('pointerdown', (pointer) => {
-    pointer.event?.stopPropagation?.();
-    if (typeof onClick === 'function') onClick();
-  });
-
-  return container;
-}
-
-function fotoPlaceholder(scene, ancho, alto) {
-  const placeholder = scene.add.rectangle(0, 0, ancho, alto, COLORES.iconoMarcoVacio, 1);
-  placeholder.setOrigin(0, 0);
-  placeholder.setStrokeStyle(2, COLORES.borde, 0.7);
-  return placeholder;
-}
+import { crearBotonMarron } from './cajaMarron.js';
 
 function intentarCargarImagen(scene, ruta, onCargada) {
   if (!ruta) return null;
@@ -70,28 +32,15 @@ function intentarCargarImagen(scene, ruta, onCargada) {
 }
 
 export function crearLadoIzquierdo(scene, opciones) {
-  const { x, y, ancho, alto, padre, datosIniciales, onIrAInicial, onHistorial } = opciones;
-  const padding = LADO_IZQUIERDO.paddingInterno;
+  const { padre, rects, datosIniciales, onIrAInicial, onHistorial } = opciones;
 
-  const container = scene.add.container(x, y);
+  const container = scene.add.container(0, 0);
   container.setDepth(DEPTHS.contenido);
   padre.add(container);
 
-  const banda = scene.add.rectangle(0, 0, ancho, alto, COLORES.bandaSeccion, 0.5);
-  banda.setOrigin(0, 0);
-  banda.setStrokeStyle(2, COLORES.separador, 0.4);
-  container.add(banda);
-
-  const fotoTam = Math.min(ancho - padding * 2, alto * LADO_IZQUIERDO.fotoFraccionAlto);
-  const fotoX = (ancho - fotoTam) / 2;
-  const fotoY = padding;
-
-  const placeholder = fotoPlaceholder(scene, fotoTam, fotoTam);
-  placeholder.setPosition(fotoX, fotoY);
-  container.add(placeholder);
-
+  // ── Foto en el recuadro gris ───────────────────────────────────────────
+  const f = rects.foto;
   let fotoImg = null;
-
   const fijarFoto = (ruta) => {
     if (fotoImg) {
       fotoImg.destroy();
@@ -99,20 +48,22 @@ export function crearLadoIzquierdo(scene, opciones) {
     }
     if (!ruta) return;
     intentarCargarImagen(scene, ruta, (clave) => {
-      fotoImg = scene.add.image(fotoX + fotoTam / 2, fotoY + fotoTam / 2, clave);
-      fotoImg.setDisplaySize(fotoTam, fotoTam);
+      fotoImg = scene.add.image(f.x + f.ancho / 2, f.y + f.alto / 2, clave);
+      fotoImg.setDisplaySize(f.ancho * 0.92, f.alto * 0.92);
       fotoImg.setDepth(DEPTHS.contenido + 1);
       container.add(fotoImg);
     });
   };
 
-  const barraY = fotoY + fotoTam + LADO_IZQUIERDO.gapVerticalEntreBloques + 50;
-  const barraAncho = ancho - padding * 2;
-  const barra = crearBarraVidaRect(scene, {
-    x: padding,
-    y: barraY - 20,
-    ancho: barraAncho,
-    alto: LADO_IZQUIERDO.barraVidaAlto,
+  // ── Barra de vida (imagen) ─────────────────────────────────────────────
+  const b = rects.barra;
+  const barra = crearBarraVidaImagen(scene, {
+    x: b.x,
+    y: b.y,
+    ancho: b.ancho,
+    alto: b.alto,
+    claveLlena: ASSETS.barraLlena.clave,
+    claveVacia: ASSETS.barraVacia.clave,
     vidaActual: datosIniciales?.vida?.vidaActual ?? 0,
     vidaMaxima: datosIniciales?.vida?.vidaMaxima ?? 1,
     origen: 0,
@@ -120,6 +71,8 @@ export function crearLadoIzquierdo(scene, opciones) {
   });
   container.add(barra);
 
+  // ── Texto de vida ──────────────────────────────────────────────────────
+  const tv = rects.textoVida;
   let textoVida = null;
   const fijarTextoVida = (vidaActual, vidaMaxima) => {
     if (textoVida) {
@@ -127,55 +80,53 @@ export function crearLadoIzquierdo(scene, opciones) {
       textoVida = null;
     }
     textoVida = crearTexto(scene, `${vidaActual} - ${vidaMaxima}`, {
-      x: ancho / 2,
-      y: barraY + LADO_IZQUIERDO.barraVidaAlto - 28,
+      x: tv.x + tv.ancho / 2,
+      y: tv.y + tv.alto / 2,
       estilo: LADO_IZQUIERDO.textoVidaEstilo,
       escala: LADO_IZQUIERDO.textoVidaEscala,
-      origen: { x: 0.5, y: 0 },
+      origen: { x: 0.5, y: 0.5 },
       depth: DEPTHS.contenido + 2,
     });
     container.add(textoVida);
   };
 
-  const textoVidaAlto =
-    medirTexto('0', {
-      estilo: LADO_IZQUIERDO.textoVidaEstilo,
-      escala: LADO_IZQUIERDO.textoVidaEscala,
-    }).alto + 8;
-
-  const tooltipY =
-    barraY + LADO_IZQUIERDO.barraVidaAlto + textoVidaAlto + LADO_IZQUIERDO.gapVerticalEntreBloques;
-  const tooltipAlto = LADO_IZQUIERDO.tooltipAlto;
-  const tooltipAncho = ancho - padding * 2;
-
+  // ── Tooltip de descripción ─────────────────────────────────────────────
+  const tt = rects.tooltip;
   const tooltip = crearTooltipDescripcion(scene, {
-    x: padding,
-    y: tooltipY - 25,
-    ancho: tooltipAncho,
-    alto: tooltipAlto,
+    x: tt.x,
+    y: tt.y,
+    ancho: tt.ancho,
+    alto: tt.alto,
     padre: container,
     medirTexto,
   });
 
-  const botonY = tooltipY + tooltipAlto + LADO_IZQUIERDO.gapVerticalEntreBloques;
-  const botonAncho = (ancho - padding * 2 - LADO_IZQUIERDO.botonGap) / 2;
+  // ── Botones marrones ───────────────────────────────────────────────────
+  const bt = rects.botones;
+  const gap = LADO_IZQUIERDO.botonGap;
+  const botonAncho = (bt.ancho - gap) / 2;
+  const botonAlto = Math.min(LADO_IZQUIERDO.botonAlto, bt.alto);
 
-  const btnInicial = crearBoton(scene, {
-    x: padding,
-    y: botonY - 25,
+  const btnInicial = crearBotonMarron(scene, {
+    x: bt.x,
+    y: bt.y,
     ancho: botonAncho,
-    alto: LADO_IZQUIERDO.botonAlto,
+    alto: botonAlto,
     texto: 'IR A INICIAL',
+    estilo: LADO_IZQUIERDO.botonTextoEstilo,
+    escala: LADO_IZQUIERDO.botonTextoEscala,
     onClick: onIrAInicial,
   });
   container.add(btnInicial);
 
-  const btnHistorial = crearBoton(scene, {
-    x: padding + botonAncho + LADO_IZQUIERDO.botonGap,
-    y: botonY - 25,
+  const btnHistorial = crearBotonMarron(scene, {
+    x: bt.x + botonAncho + gap,
+    y: bt.y,
     ancho: botonAncho,
-    alto: LADO_IZQUIERDO.botonAlto,
-    texto: 'VER HISTORIAL',
+    alto: botonAlto,
+    texto: 'HISTORIAL',
+    estilo: LADO_IZQUIERDO.botonTextoEstilo,
+    escala: LADO_IZQUIERDO.botonTextoEscala,
     onClick: onHistorial,
   });
   container.add(btnHistorial);
@@ -183,7 +134,7 @@ export function crearLadoIzquierdo(scene, opciones) {
   fijarFoto(datosIniciales?.foto);
   fijarTextoVida(
     datosIniciales?.vida?.vidaActual ?? 0,
-    datosIniciales?.vida?.vidaMaxima ?? 1
+    datosIniciales?.vida?.vidaMaxima ?? 1,
   );
 
   return {

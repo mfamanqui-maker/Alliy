@@ -27,8 +27,12 @@ export function crearListaScrollable(scene, opciones) {
   const contenidoInterno = scene.add.container(0, 0);
   contenedorViewport.add(contenidoInterno);
 
-  const maskRectX = padre.x + x;
-  const maskRectY = padre.y + y;
+  // Posición real en pantalla del viewport (soporta cualquier anidamiento de
+  // containers). El panel usa scrollFactor 0, así que tx/ty equivalen a px de
+  // pantalla.
+  const matriz = contenedorViewport.getWorldTransformMatrix();
+  const maskRectX = matriz.tx;
+  const maskRectY = matriz.ty;
 
   const maskShape = scene.make.graphics({ x: 0, y: 0, add: false });
   maskShape.fillStyle(0xffffff, 1);

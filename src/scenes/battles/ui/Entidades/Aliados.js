@@ -1,3 +1,20 @@
+import { ASSETS, ORBE_BASE_FRAME } from '../PanelEntidad/panelEntidadConfig.js';
+
+/** Normaliza la `ruta` de un icono de acción a una URL cargable desde la raíz. */
+export function rutaIconoNormalizada(ruta) {
+  if (!ruta) return null;
+  let p = String(ruta).replace(/^(\.\.\/)+/, '');
+  const idx = p.indexOf('assets/');
+  if (idx >= 0) p = p.slice(idx);
+  return p.replace('/iconos/', '/Iconos/');
+}
+
+/** Clave de textura estable para el icono de una acción. */
+export function claveIconoAccion(ruta) {
+  const base = String(ruta ?? '').split('/').pop() ?? '';
+  return `iconoAccion_${base.replace(/[^a-zA-Z0-9]+/g, '_')}`;
+}
+
 export default class Aliados {
   /**
    * @param {import('../../../../classes/battle/familias/bases/baseGeneral.js').DatosEntidad} data
@@ -16,6 +33,8 @@ export default class Aliados {
     this.flechasNavegacion = [];
     this.marcasObjetivo = [];
     this._handlersObjetivo = [];
+    this._handlersCasillaObjetivo = [];
+    this._restauradoresBrilloObjetivo = [];
     this._updateOrbesHandler = null;
     this._keydownOrbesHandler = null;
     this._keydownObjetivoHandler = null;
@@ -63,7 +82,7 @@ export default class Aliados {
     const sprite = this.aliadoEspecifico?.sprite;
     if (!sprite?.active) return null;
 
-    const radio = 18;
+    const radio = 30;
     const semieje = Math.max(sprite.displayWidth, sprite.displayHeight) * 0.5;
     const distancia = semieje;
     const xOrbes = sprite.x - distancia;
@@ -127,39 +146,97 @@ export default class Aliados {
     });
   }
 
+  /**
+   * Subacción: orbe redondo marrón (frame 667 de Base.png) con el icono de la
+   * acción (campo `ruta`) encima. Sin etiqueta de texto.
+   */
+  _crearOrbeSubaccion(tablero, meta, centro, radio) {
+    const cont = tablero.add.container(centro.x, centro.y);
+
+    const base = tablero.add.image(0, 0, ASSETS.base.clave, ORBE_BASE_FRAME);
+    base.setOrigin(0.5);
+    base.setDisplaySize(radio * 2.4, radio * 2.4);
+    cont.add(base);
+
+    const ruta = meta?.accion?.ruta;
+    if (ruta) {
+      const clave = claveIconoAccion(ruta);
+      const colocarIcono = () => {
+        if (!cont.active || !tablero.textures.exists(clave)) return;
+        const icono = tablero.add.image(0, 0, clave);
+        icono.setOrigin(0.5);
+        icono.setDisplaySize(radio * 1.3, radio * 1.3);
+        cont.add(icono);
+      };
+      if (tablero.textures.exists(clave)) {
+        colocarIcono();
+      } else {
+        tablero.load.image(clave, rutaIconoNormalizada(ruta));
+        tablero.load.once('complete', colocarIcono);
+        if (!tablero.load.isLoading()) tablero.load.start();
+      }
+    }
+
+    // Círculo invisible: hitbox alineada al orbe visible (Phaser usa el radio
+    // del círculo y escala con el contenedor padre).
+    const hit = tablero.add.circle(0, 0, radio * 1.05, 0xffffff, 0.001);
+    hit.setInteractive({ useHandCursor: true });
+    cont.add(hit);
+
+    cont.hitTarget = hit;
+    cont.baseSprite = base;
+    return cont;
+  }
+
+  /** Resalta el orbe al pasar el cursor. Sin tweens: no interrumpe animaciones. */
+  _brilloOrbe(orbe, activar) {
+    if (!orbe || !orbe.active) return;
+
+    const escalaReposo = orbe._escalaReposo ?? 3;
+    orbe.setScale(activar ? escalaReposo * 1.06 : escalaReposo);
+
+    if (orbe.baseSprite?.setTint) {
+      orbe.baseSprite.setTint(activar ? 0xffffcc : 0xffffff);
+    }
+  }
+
+  _fijarEscalaReposoOrbe(orbe, escala) {
+    if (!orbe) return;
+    orbe._escalaReposo = escala;
+    orbe.setScale(escala);
+  }
+
   _crearOrbe(meta, indice, objetivos) {
     const tablero = this.obtenerEscenaTablero();
     if (!tablero || !objetivos) return;
 
-    const orbe = tablero.add.circle(objetivos.centro.x, objetivos.centro.y, objetivos.radio, meta.color, 0.9);
+    let orbe;
+    if (meta.tipo === 'accion') {
+      orbe = this._crearOrbeSubaccion(tablero, meta, objetivos.centro, objetivos.radio);
+    } else {
+      orbe = tablero.add.circle(objetivos.centro.x, objetivos.centro.y, objetivos.radio, meta.color, 0.9);
+      orbe.setStrokeStyle(3, 0xffffff, 0.9);
+      orbe.setInteractive({ useHandCursor: true });
+    }
+
     orbe.setDepth(20);
-    orbe.setStrokeStyle(3, 0xffffff, 0.9);
     orbe.setScale(0.2);
     orbe.setAlpha(0);
-    orbe.setInteractive({ useHandCursor: true });
+    orbe._escalaReposo = 3;
 
-    const etiqueta = tablero.add.text(objetivos.centro.x, objetivos.centro.y, String(meta.nombre).toUpperCase().slice(0, 14), {
-      fontFamily: 'Arial',
-      fontSize: '14px',
-      color: '#ffffff',
-      stroke: '#000000',
-      strokeThickness: 4,
-    });
-    etiqueta.setOrigin(0.5);
-    etiqueta.setDepth(21);
-    etiqueta.setScale(0.2);
-    etiqueta.setAlpha(0);
-
-    orbe.on('pointerdown', (pointer, localX, localY, event) => {
+    const input = orbe.hitTarget ?? orbe;
+    input.on('pointerdown', (pointer, localX, localY, event) => {
       event?.stopPropagation?.();
       this._manejarClickOrbe(meta);
     });
+    input.on('pointerover', () => this._brilloOrbe(orbe, true));
+    input.on('pointerout', () => this._brilloOrbe(orbe, false));
 
     if (meta.accion) {
       meta.accion.orbePhaser = orbe;
     }
 
-    const entrada = { orbe, etiqueta, meta, indice };
+    const entrada = { orbe, etiqueta: null, meta, indice };
     this.orbesSeleccion.push(entrada);
     return entrada;
   }
@@ -179,23 +256,23 @@ export default class Aliados {
     if (!tablero || !objetivos || this.orbesSeleccion.length === 0) return;
 
     this.orbesSeleccion.forEach((entrada, indice) => {
-      const { orbe, etiqueta } = entrada;
+      const { orbe } = entrada;
       const destino = objetivos.posiciones[indice];
       const origen = direccion === 0
         ? objetivos.centro
         : { x: destino.x, y: destino.y + direccion * 70 };
 
       orbe.setPosition(origen.x, origen.y);
-      etiqueta.setPosition(origen.x, origen.y);
-      tablero.tweens.killTweensOf([orbe, etiqueta]);
+      tablero.tweens.killTweensOf(orbe);
       tablero.tweens.add({
-        targets: [orbe, etiqueta],
+        targets: orbe,
         x: destino.x,
         y: destino.y,
         alpha: 1,
         scale: 3,
         duration: 180 + indice * 30,
         ease: 'Sine.easeOut',
+        onComplete: () => this._fijarEscalaReposoOrbe(orbe, 3),
       });
     });
   }
@@ -237,10 +314,20 @@ export default class Aliados {
     this._destruirFlechasNavegacion();
     let restantes = this.orbesSeleccion.length;
 
-    this.orbesSeleccion.forEach(({ orbe, etiqueta }) => {
-      tablero.tweens.killTweensOf([orbe, etiqueta]);
+    this.orbesSeleccion.forEach(({ orbe }) => {
+      if (!orbe?.active) {
+        restantes -= 1;
+        if (restantes <= 0) {
+          this.orbesSeleccion = [];
+          this._limpiarReferenciasOrbesAcciones();
+          onComplete?.();
+        }
+        return;
+      }
+
+      tablero.tweens.killTweensOf(orbe);
       tablero.tweens.add({
-        targets: [orbe, etiqueta],
+        targets: orbe,
         x: objetivos.centro.x,
         y: objetivos.centro.y,
         alpha: 0,
@@ -248,8 +335,7 @@ export default class Aliados {
         duration: 160,
         ease: 'Sine.easeIn',
         onComplete: () => {
-          orbe.destroy();
-          etiqueta?.destroy();
+          orbe?.destroy?.();
           restantes -= 1;
           if (restantes <= 0) {
             this.orbesSeleccion = [];
@@ -263,12 +349,28 @@ export default class Aliados {
 
   _destruirOrbes() {
     this._detenerSeguimientoOrbes();
+    const tablero = this.obtenerEscenaTablero();
+
     this.orbesSeleccion.forEach(({ orbe, etiqueta }) => {
-      orbe?.destroy();
+      if (orbe?.active) {
+        tablero?.tweens?.killTweensOf(orbe);
+        orbe.destroy();
+      }
       etiqueta?.destroy();
     });
     this.orbesSeleccion = [];
-    this._limpiarReferenciasOrbesAcciones();
+
+    // Destruye cualquier orbe huérfano aún referenciado en acciones.
+    this.acciones.flat().forEach((accion) => {
+      const orbe = accion?.orbePhaser;
+      if (orbe?.active) {
+        tablero?.tweens?.killTweensOf(orbe);
+        orbe.destroy();
+      }
+      if (accion) accion.orbePhaser = null;
+    });
+
+    this._transicionandoOrbes = false;
   }
 
   _mostrarCadena(cadena, offset = 0, direccion = 0, conSalida = true) {
@@ -347,11 +449,8 @@ export default class Aliados {
       const nuevaEntrada = this._crearOrbe(meta, indice, objetivos);
       if (!nuevaEntrada) return;
       nuevaEntrada.orbe.setPosition(origenNuevo.x, origenNuevo.y);
-      nuevaEntrada.etiqueta.setPosition(origenNuevo.x, origenNuevo.y);
       nuevaEntrada.orbe.setScale(3);
-      nuevaEntrada.etiqueta.setScale(3);
       nuevaEntrada.orbe.setAlpha(0);
-      nuevaEntrada.etiqueta.setAlpha(0);
       nuevasEntradas.push(nuevaEntrada);
     });
 
@@ -372,24 +471,27 @@ export default class Aliados {
 
     nuevasEntradas.forEach((entrada, indice) => {
       const destino = objetivos.posiciones[indice];
-      tablero.tweens.killTweensOf([entrada.orbe, entrada.etiqueta]);
+      tablero.tweens.killTweensOf(entrada.orbe);
       tablero.tweens.add({
-        targets: [entrada.orbe, entrada.etiqueta],
+        targets: entrada.orbe,
         x: destino.x,
         y: destino.y,
         alpha: 1,
         scale: 3,
         duration: 180,
         ease: 'Sine.easeOut',
-        onComplete: finalizarTween,
+        onComplete: () => {
+          this._fijarEscalaReposoOrbe(entrada.orbe, 3);
+          finalizarTween();
+        },
       });
     });
 
     salientes.forEach((entrada) => {
       if (entrada.meta?.accion) entrada.meta.accion.orbePhaser = null;
-      tablero.tweens.killTweensOf([entrada.orbe, entrada.etiqueta]);
+      tablero.tweens.killTweensOf(entrada.orbe);
       tablero.tweens.add({
-        targets: [entrada.orbe, entrada.etiqueta],
+        targets: entrada.orbe,
         x: destinoSalida.x,
         y: destinoSalida.y,
         alpha: 0,
@@ -397,7 +499,6 @@ export default class Aliados {
         ease: 'Sine.easeIn',
         onComplete: () => {
           entrada.orbe?.destroy();
-          entrada.etiqueta?.destroy();
           finalizarTween();
         },
       });
@@ -412,8 +513,15 @@ export default class Aliados {
   }
 
   _manejarClickOrbe(meta) {
+    if (this._transicionandoOrbes) return;
+
     if (meta.tipo === 'principal') {
       this._mostrarCadena(meta.clave, 0, 0);
+      return;
+    }
+
+    if (meta.accion?.condicional === false) {
+      this._animacionRechazoEntidad();
       return;
     }
 
@@ -425,6 +533,51 @@ export default class Aliados {
       objetivoEntidad: null,
     };
     this._iniciarSeleccionObjetivo(nuevaTarea);
+  }
+
+  /** Tiñe de rojo y hace tiritar al personaje para indicar que la accion no es posible. */
+  _animacionRechazoEntidad() {
+    const sprite = this.aliadoEspecifico?.sprite;
+    const tablero = this.obtenerEscenaTablero();
+    if (!sprite?.active || !tablero) return;
+
+    tablero.tweens?.killTweensOf(sprite);
+    const xPrev = sprite.x;
+    const tintePrevio = sprite.tintTopLeft;
+    sprite.setTint(0xff0000);
+
+    tablero.tweens.add({
+      targets: sprite,
+      x: { from: xPrev - 12, to: xPrev + 12 },
+      duration: 45,
+      yoyo: true,
+      repeat: 7,
+      onComplete: () => {
+        sprite.x = xPrev;
+        if (tintePrevio != null && tintePrevio !== 0xffffff) sprite.setTint(tintePrevio);
+        else sprite.clearTint();
+      },
+    });
+  }
+
+  _normalizarCasoSeleccion(casoDeEleccion) {
+    if (casoDeEleccion == null || casoDeEleccion === false) {
+      return { tipo: 'automatico' };
+    }
+
+    const valor = String(casoDeEleccion).toLowerCase();
+    if (valor === '0') {
+      return { tipo: 'entidad', bandos: ['Aliados', 'Enemigos'] };
+    }
+    if (valor === '1') {
+      return { tipo: 'posterior', bandos: ['Aliados', 'Enemigos'] };
+    }
+    if (valor.includes('casilla')) {
+      return { tipo: 'casilla' };
+    }
+
+    // Compatibilidad con acciones antiguas escritas como "Aliados" o "Enemigos".
+    return { tipo: 'entidad', bandos: this._normalizarBandosObjetivo(casoDeEleccion) };
   }
 
   _normalizarBandosObjetivo(casoDeEleccion) {
@@ -440,7 +593,28 @@ export default class Aliados {
     return [];
   }
 
-  _obtenerCandidatosObjetivo(bandos) {
+  _obtenerRangoAccion(accion) {
+    const rango = Number(accion?.rango);
+    return Number.isFinite(rango) && rango >= 0 ? rango : Infinity;
+  }
+
+  _obtenerPosicionEntidad(entidad) {
+    return entidad?.data?.posicion ??
+      entidad?.aliadoEspecifico?.datos?.posicion ??
+      entidad?.enemigoEspecifico?.datos?.posicion ??
+      null;
+  }
+
+  _estaDentroDeRango(posicionDestino, rango, entidadOrigen = this.entidadAliada) {
+    if (!Number.isFinite(rango)) return true;
+    const origen = this._obtenerPosicionEntidad(entidadOrigen);
+    if (!origen || !posicionDestino) return false;
+
+    return Math.abs(Number(posicionDestino.x) - Number(origen.x)) <= rango &&
+      Math.abs(Number(posicionDestino.y) - Number(origen.y)) <= rango;
+  }
+
+  _obtenerCandidatosObjetivo(bandos, rango = Infinity, entidadOrigen = this.entidadAliada) {
     const candidatos = [];
     const incluirAliados = bandos.includes('Aliados');
     const incluirEnemigos = bandos.includes('Enemigos');
@@ -463,6 +637,31 @@ export default class Aliados {
       });
     }
 
+    return candidatos.filter((candidato) =>
+      this._estaDentroDeRango(this._obtenerPosicionEntidad(candidato.entidad), rango, entidadOrigen)
+    );
+  }
+
+  _casillaEstaOcupada(casilla) {
+    return Boolean(casilla?.entidad && casilla.entidad !== false);
+  }
+
+  _obtenerCandidatosCasilla(rango = Infinity, accion = null, entidadOrigen = this.entidadAliada) {
+    const tablero = this.obtenerEscenaTablero();
+    const tableroData = tablero?.tableroData ?? this.sceneEntidad?.arrayBidimencional ?? [];
+    const permitirOcupada = accion?.permiteCasillaOcupada === true;
+    const candidatos = [];
+
+    tableroData.forEach((fila, y) => {
+      fila.forEach((casilla, x) => {
+        if (!casilla || casilla.id === 0 || !casilla.casillaPhaser) return;
+        if (!permitirOcupada && this._casillaEstaOcupada(casilla)) return;
+        const posicion = { x: x + 1, y: y + 1 };
+        if (!this._estaDentroDeRango(posicion, rango, entidadOrigen)) return;
+        candidatos.push({ casilla, col: posicion.x, fila: posicion.y });
+      });
+    });
+
     return candidatos;
   }
 
@@ -474,16 +673,46 @@ export default class Aliados {
 
   _iniciarSeleccionObjetivo(nuevaTarea) {
     const casoDeEleccion = nuevaTarea.accion?.casoDeElección ?? nuevaTarea.accion?.casoDeEleccion;
-    const bandosObjetivo = this._normalizarBandosObjetivo(casoDeEleccion);
-    if (bandosObjetivo.length === 0) {
+    const casoSeleccion = this._normalizarCasoSeleccion(casoDeEleccion);
+    const rango = this._obtenerRangoAccion(nuevaTarea.accion);
+
+    if (casoSeleccion.tipo === 'automatico') {
       this.objetivoSeleccionado = null;
       this._finalizarSeleccionObjetivo(nuevaTarea, null);
       return;
     }
 
-    const candidatos = this._obtenerCandidatosObjetivo(bandosObjetivo);
+    if (casoSeleccion.tipo === 'posterior') {
+      nuevaTarea.seleccionPosterior = {
+        bandos: casoSeleccion.bandos,
+        rango,
+      };
+      this._finalizarSeleccionObjetivo(nuevaTarea, null);
+      return;
+    }
+
+    if (casoSeleccion.tipo === 'casilla') {
+      const casillas = this._obtenerCandidatosCasilla(rango, nuevaTarea.accion, nuevaTarea.entidad);
+      if (casillas.length === 0) {
+        console.warn('No hay casillas validas en rango para la accion', nuevaTarea.accion);
+        this._animacionRechazoEntidad();
+        return;
+      }
+
+      this._limpiarSeleccionObjetivo();
+      this.tareaPendienteObjetivo = nuevaTarea;
+      this.objetivoSeleccionado = null;
+      this._destruirOrbes();
+      this._destruirFlechasNavegacion();
+      this._registrarCancelacionObjetivo();
+      this._marcarCasillasObjetivo(casillas);
+      return;
+    }
+
+    const candidatos = this._obtenerCandidatosObjetivo(casoSeleccion.bandos, rango, nuevaTarea.entidad);
     if (candidatos.length === 0) {
       console.warn('No hay objetivos validos para la accion', nuevaTarea.accion);
+      this._animacionRechazoEntidad();
       return;
     }
 
@@ -501,11 +730,26 @@ export default class Aliados {
     if (!tablero) return;
 
     candidatos.forEach((candidato) => {
-      const radio = Math.max(candidato.sprite.displayWidth, candidato.sprite.displayHeight) * 0.55;
-      const marca = tablero.add.circle(candidato.sprite.x, candidato.sprite.y, radio, 0xffffff, 0.12);
-      marca.setDepth(18);
-      marca.setStrokeStyle(6, candidato.bando === 'Aliados' ? 0x8be66f : 0xff6b6b, 0.95);
-      this.marcasObjetivo.push(marca);
+      const tintePrevio = candidato.sprite.tintTopLeft;
+      const alphaPrevio = candidato.sprite.alpha;
+      candidato.sprite.setTint(candidato.bando === 'Aliados' ? 0x8be66f : 0xff6b6b);
+      tablero.tweens.add({
+        targets: candidato.sprite,
+        alpha: 0.45,
+        duration: 520,
+        ease: 'Sine.easeInOut',
+        yoyo: true,
+        repeat: -1,
+      });
+      this._restauradoresBrilloObjetivo.push(() => {
+        tablero.tweens?.killTweensOf(candidato.sprite);
+        candidato.sprite.setAlpha(alphaPrevio ?? 1);
+        if (tintePrevio != null && tintePrevio !== 0xffffff) {
+          candidato.sprite.setTint(tintePrevio);
+        } else {
+          candidato.sprite.clearTint();
+        }
+      });
 
       const handler = (pointer, localX, localY, event) => {
         event?.stopPropagation?.();
@@ -514,6 +758,46 @@ export default class Aliados {
       candidato.sprite.setInteractive({ useHandCursor: true });
       candidato.sprite.on('pointerdown', handler);
       this._handlersObjetivo.push({ sprite: candidato.sprite, handler });
+    });
+  }
+
+  _marcarCasillasObjetivo(casillas) {
+    const tablero = this.obtenerEscenaTablero();
+    if (!tablero) return;
+
+    casillas.forEach(({ casilla, col, fila }) => {
+      const base = casilla.casillaPhaser;
+      if (!base?.active) return;
+
+      // En vez de tintar la casilla original (lo que la hace parecer otra),
+      // superponemos una marca translucida que pulsa: la casilla se ilumina y se
+      // desvanece, pero el suelo original sigue visible debajo (no parece otra).
+      const ancho = base.displayWidth || (base.width * (base.scaleX ?? 1)) || 1;
+      const alto = base.displayHeight || (base.height * (base.scaleY ?? 1)) || 1;
+      const cx = base.x + ancho * (0.5 - (base.originX ?? 0));
+      const cy = base.y + alto * (0.5 - (base.originY ?? 0));
+
+      const brillo = tablero.add.rectangle(cx, cy, ancho, alto, 0xffe066);
+      brillo.setDepth((base.depth ?? 0) + 1);
+      brillo.setAlpha(0.25);
+      brillo.setInteractive({ useHandCursor: true });
+
+      tablero.tweens.add({
+        targets: brillo,
+        alpha: 0.7,
+        duration: 620,
+        ease: 'Sine.easeInOut',
+        yoyo: true,
+        repeat: -1,
+      });
+
+      const handler = (pointer, localX, localY, event) => {
+        event?.stopPropagation?.();
+        this._finalizarSeleccionCasilla(this.tareaPendienteObjetivo, { col, fila, casilla });
+      };
+      brillo.on('pointerdown', handler);
+      this._handlersCasillaObjetivo.push({ marca: brillo, handler });
+      this.marcasObjetivo.push(brillo);
     });
   }
 
@@ -538,7 +822,18 @@ export default class Aliados {
     });
     this._handlersObjetivo = [];
 
-    this.marcasObjetivo.forEach((marca) => marca?.destroy());
+    this._handlersCasillaObjetivo.forEach(({ marca, handler }) => {
+      marca?.off?.('pointerdown', handler);
+    });
+    this._handlersCasillaObjetivo = [];
+
+    this._restauradoresBrilloObjetivo.forEach((restaurar) => restaurar?.());
+    this._restauradoresBrilloObjetivo = [];
+
+    this.marcasObjetivo.forEach((marca) => {
+      tablero?.tweens?.killTweensOf(marca);
+      marca?.destroy();
+    });
     this.marcasObjetivo = [];
 
     if (this._keydownObjetivoHandler && tablero?.input?.keyboard) {
@@ -551,6 +846,37 @@ export default class Aliados {
     }
   }
 
+  _finalizarSeleccionCasilla(nuevaTarea, candidato) {
+    if (!nuevaTarea) return;
+
+    const coordenadas = candidato
+      ? { x: candidato.col, y: candidato.fila }
+      : null;
+
+    nuevaTarea.objetivo = null;
+    nuevaTarea.objetivoEntidad = null;
+    nuevaTarea.bandoObjetivo = null;
+    nuevaTarea.casillaObjetivo = coordenadas;
+    nuevaTarea.coordenadasObjetivo = coordenadas;
+    this._limpiarSeleccionObjetivo();
+
+    const Entidades = [this.sceneEntidad?.aliados, this.sceneEntidad?.enemigos];
+    const controladorJugada = this._obtenerControladorJugada();
+    if (controladorJugada?.actualizarPilaDetareas) {
+      const ok = controladorJugada.actualizarPilaDetareas(nuevaTarea, Entidades);
+      if (!ok) {
+        console.warn('No se pudo registrar la acción de casilla.');
+        return;
+      }
+      if (this._estaSeleccionado) {
+        this._mostrarCadena(this._cadenaActual, this._offsetCadena, 0, false);
+      }
+      return;
+    }
+
+    console.warn('No se pudo registrar la tarea de casilla', nuevaTarea);
+  }
+
   _finalizarSeleccionObjetivo(nuevaTarea, candidato) {
     if (!nuevaTarea) return;
 
@@ -559,10 +885,17 @@ export default class Aliados {
     nuevaTarea.objetivoEntidad = candidato?.entidad ?? null;
     nuevaTarea.bandoObjetivo = candidato?.bando ?? null;
     this._limpiarSeleccionObjetivo();
-
+    const Entidades = [this.sceneEntidad?.aliados, this.sceneEntidad?.enemigos];
     const controladorJugada = this._obtenerControladorJugada();
     if (controladorJugada?.actualizarPilaDetareas) {
-      controladorJugada.actualizarPilaDetareas(nuevaTarea);
+      const ok = controladorJugada.actualizarPilaDetareas(nuevaTarea, Entidades);
+      if (!ok) {
+        console.warn('No se pudo registrar la acción (accionismo agotado sin acción previa).');
+        return;
+      }
+      if (this._estaSeleccionado) {
+        this._mostrarCadena(this._cadenaActual, this._offsetCadena, 0, false);
+      }
       return;
     }
 
@@ -694,6 +1027,7 @@ export default class Aliados {
     this.acciones = this.entidadAliada?.acciones ?? [[], [], []];
 
     this._estaSeleccionado = true;
+    this._transicionandoOrbes = false;
     this._registrarInputsNavegacion();
     this._mostrarCadena('principal', 0, 0, false);
     return true;
@@ -702,9 +1036,11 @@ export default class Aliados {
   onDeseleccionar() {
     if (!this._estaSeleccionado) return;
     this._estaSeleccionado = false;
+    this._transicionandoOrbes = false;
     this._detenerInputsNavegacion();
     this._limpiarSeleccionObjetivo();
-    this._animarSalidaOrbes();
+    this._destruirOrbes();
+    this._destruirFlechasNavegacion();
     this._cadenaActual = 'principal';
     this._offsetCadena = 0;
   }
@@ -723,11 +1059,9 @@ export default class Aliados {
   }
 }
 
-const ICONO_DEFECTO = 'assets/images/system/candle.png';
-
 function aItems(lista, etiquetaCantidad = '') {
   return (lista ?? []).map((item) => ({
-    imagen: ICONO_DEFECTO,
+    imagen: item?.ruta ? rutaIconoNormalizada(item.ruta) : null,
     nombre: String(item?.nombre ?? item ?? ''),
     cantidad: etiquetaCantidad,
   }));
@@ -737,10 +1071,11 @@ export function construirDatosDetalle(entidadEspecifica, bando) {
   const stats = entidadEspecifica.estadisticas ?? {};
   const lda = entidadEspecifica.listaDeAcciones ?? {};
   const hp = Number(stats.hp ?? 0);
+  const hpMax = Number(stats.hpMax ?? stats.hp ?? hp);
   const estadisticas = Object.entries(stats)
-    .filter(([clave]) => clave.toLowerCase() !== 'hp')
+    .filter(([clave]) => clave.toLowerCase() !== 'hp' && clave.toLowerCase() !== 'hpmax')
     .map(([clave, valor]) => ({
-      imagen: ICONO_DEFECTO,
+      imagen: null,
       nombre: String(clave).toUpperCase(),
       cantidad: valor,
     }));
@@ -753,8 +1088,8 @@ export function construirDatosDetalle(entidadEspecifica, bando) {
     id: entidadEspecifica.id,
     bando,
     nombre: entidadEspecifica.datos?.arquetipo ?? '',
-    foto: ICONO_DEFECTO,
-    vida: { vidaActual: hp, vidaMaxima: hp },
+    foto: null,
+    vida: { vidaActual: hp, vidaMaxima: hpMax },
     estadisticas,
     efectos: [],
     acciones,

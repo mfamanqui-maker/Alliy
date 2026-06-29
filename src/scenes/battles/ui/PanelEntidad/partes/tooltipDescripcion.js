@@ -8,7 +8,8 @@
  */
 
 import { crearTexto } from '../../GenerarTexto/index.js';
-import { COLORES, DEPTHS, LADO_IZQUIERDO, obtenerDescripcion } from '../panelEntidadConfig.js';
+import { DEPTHS, LADO_IZQUIERDO, obtenerDescripcion } from '../panelEntidadConfig.js';
+import { crearCajaMarron } from './cajaMarron.js';
 
 const TEXTO_INICIAL = LADO_IZQUIERDO.tooltipTitulo;
 const TEXTO_FALLBACK = '(SIN DESCRIPCION)';
@@ -44,9 +45,7 @@ export function crearTooltipDescripcion(scene, opciones) {
   container.setDepth(DEPTHS.tooltip);
   padre.add(container);
 
-  const fondo = scene.add.rectangle(0, 0, ancho, alto, COLORES.tooltipFondo, 0.95);
-  fondo.setOrigin(0, 0);
-  fondo.setStrokeStyle(2, COLORES.tooltipBorde, 0.9);
+  const fondo = crearCajaMarron(scene, { x: 0, y: 0, ancho, alto, borde: 14 });
   container.add(fondo);
 
   let textoActual = null;

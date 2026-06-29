@@ -3,7 +3,8 @@ import { crearRegistroEnemigos } from '../../classes/battle/familias/enemigoEspe
 import { precargarSpritesheet } from '../../classes/battle/familias/bases/phaserMoldFactory.js';
 import { precargarTodosLosTextos, registrarTodosLosFramesTexto } from './ui/GenerarTexto/index.js';
 import { precargarDescripcionesPanelEntidad } from './ui/PanelEntidad/index.js';
-import Aliados from './ui/Entidades/Aliados.js';
+import { ASSETS } from './ui/PanelEntidad/panelEntidadConfig.js';
+import Aliados, { claveIconoAccion, rutaIconoNormalizada } from './ui/Entidades/Aliados.js';
 import Enemigos from './ui/Entidades/Enemigos.js';
 
 export default class entidadScene extends Phaser.Scene {
@@ -25,6 +26,40 @@ export default class entidadScene extends Phaser.Scene {
     precargarSpritesheet(this, 'soldado1Static', 'assets/images/battle/personajes/c1Static.png', 64, 64);
     precargarTodosLosTextos(this);
     precargarDescripcionesPanelEntidad(this);
+    this._precargarAssetsPanel();
+  }
+
+  _precargarAssetsPanel() {
+    const imagenes = [ASSETS.fondo, ASSETS.barraLlena, ASSETS.barraVacia, ASSETS.venda, ASSETS.vendaSel];
+    imagenes.forEach(({ clave, archivo }) => {
+      if (!this.textures.exists(clave)) this.load.image(clave, archivo);
+    });
+    if (!this.textures.exists(ASSETS.base.clave)) {
+      this.load.spritesheet(ASSETS.base.clave, ASSETS.base.archivo, {
+        frameWidth: ASSETS.base.frameWidth,
+        frameHeight: ASSETS.base.frameHeight,
+        margin: ASSETS.base.margin,
+        spacing: ASSETS.base.spacing,
+      });
+    }
+  }
+
+  _precargarIconosAcciones() {
+    const rutas = new Set();
+    (this.aliados ?? []).forEach((aliado) => {
+      const lda = aliado?.aliadoEspecifico?.listaDeAcciones ?? {};
+      [...(lda.habilidades ?? []), ...(lda.objetos ?? []), ...(lda.movimiento ?? [])].forEach((accion) => {
+        if (accion?.ruta) rutas.add(accion.ruta);
+      });
+    });
+    let pendientes = false;
+    rutas.forEach((ruta) => {
+      const clave = claveIconoAccion(ruta);
+      if (this.textures.exists(clave)) return;
+      this.load.image(clave, rutaIconoNormalizada(ruta));
+      pendientes = true;
+    });
+    if (pendientes && !this.load.isLoading()) this.load.start();
   }
 
   create() {
@@ -55,6 +90,7 @@ export default class entidadScene extends Phaser.Scene {
         acciones: null,
       }
       nuevoAliado.aliadoEspecifico.propiedadesEspeciales(nuevoAliado.aliadoEspecifico);
+      nuevoAliado.accionismoBase = Number(nuevoAliado.aliadoEspecifico.estadisticas?.accionismo ?? 1);
       const {habilidades, objetos, movimiento} = nuevoAliado.aliadoEspecifico.listaDeAcciones;
       const acciones = [[], [], []];
       
@@ -64,7 +100,10 @@ export default class entidadScene extends Phaser.Scene {
           ejecución: habilidad.ejecución,
           condicional: habilidad.condicional,
           casoDeElección: habilidad.casoDeElección,
+          efectoTipo1: habilidad.efectoTipo1,
+          rango: habilidad.rango,
           velocidad: habilidad.velocidad,
+          ruta: habilidad.ruta,
           orbePhaser: null,
         }
         acciones[0].push(elementoAccion);
@@ -75,7 +114,10 @@ export default class entidadScene extends Phaser.Scene {
           ejecución: objeto.ejecución,
           condicional: objeto.condicional,
           casoDeElección: objeto.casoDeElección,
+          efectoTipo1: objeto.efectoTipo1,
+          rango: objeto.rango,
           velocidad: objeto.velocidad,
+          ruta: objeto.ruta,
           orbePhaser: null,
         }
         acciones[1].push(elementoAccion);
@@ -86,7 +128,10 @@ export default class entidadScene extends Phaser.Scene {
           ejecución: movimiento.ejecución,
           condicional: movimiento.condicional,
           casoDeElección: movimiento.casoDeElección,
+          efectoTipo1: movimiento.efectoTipo1,
+          rango: movimiento.rango,
           velocidad: movimiento.velocidad,
+          ruta: movimiento.ruta,
           orbePhaser: null,
         }
         acciones[2].push(elementoAccion);
@@ -114,6 +159,8 @@ export default class entidadScene extends Phaser.Scene {
           ejecución: habilidad.ejecución,
           condicional: habilidad.condicional,
           casoDeElección: habilidad.casoDeElección,
+          efectoTipo1: habilidad.efectoTipo1,
+          rango: habilidad.rango,
           velocidad: habilidad.velocidad,
         }
         acciones[0].push(elementoAccion);
@@ -125,6 +172,8 @@ export default class entidadScene extends Phaser.Scene {
           ejecución: objeto.ejecución,
           condicional: objeto.condicional,
           casoDeElección: objeto.casoDeElección,
+          efectoTipo1: objeto.efectoTipo1,
+          rango: objeto.rango,
           velocidad: objeto.velocidad,
         }
         acciones[1].push(elementoAccion);
@@ -135,6 +184,8 @@ export default class entidadScene extends Phaser.Scene {
           ejecución: movimiento.ejecución,
           condicional: movimiento.condicional,
           casoDeElección: movimiento.casoDeElección,
+          efectoTipo1: movimiento.efectoTipo1,
+          rango: movimiento.rango,
           velocidad: movimiento.velocidad,
         }
         acciones[2].push(elementoAccion);
@@ -150,5 +201,7 @@ export default class entidadScene extends Phaser.Scene {
     this.enemigos.forEach((enemigo) => {
       this.arrayBidimencional[enemigo.data.posicion.y - 1][enemigo.data.posicion.x - 1].entidad = enemigo;
     });
+
+    this._precargarIconosAcciones();
   }
 }

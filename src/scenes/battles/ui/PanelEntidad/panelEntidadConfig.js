@@ -47,13 +47,65 @@ export const PANEL = {
   padding: 18,
 };
 
+/**
+ * Texturas del nuevo skin del panel.
+ * `panel.png` es 1700×900 (mismo tamaño nativo que el juego) y ya trae las
+ * vendas rojas, la banda de nombre, el recuadro de la imagen de referencia y
+ * el divisor central. Se usa como fondo y el contenido se superpone encima.
+ */
+export const ASSETS = {
+  fondo: { clave: 'panelFondo', archivo: 'assets/images/battle/panel/panel.png' },
+  fuente: { clave: 'panelText', archivo: 'assets/images/battle/panel/text.png' },
+  barraLlena: { clave: 'panelBarraLlena', archivo: 'assets/images/battle/panel/barraDeVida.png' },
+  barraVacia: { clave: 'panelBarraVacia', archivo: 'assets/images/battle/panel/Barra_de_vida2.png' },
+  venda: { clave: 'panelVenda', archivo: 'assets/images/battle/panel/Next.png' },
+  vendaSel: { clave: 'panelVendaSel', archivo: 'assets/images/battle/panel/NextSeleccion.png' },
+  base: {
+    clave: 'panelBase',
+    archivo: 'assets/images/battle/panel/Base.png',
+    frameWidth: 16,
+    frameHeight: 16,
+    margin: 0,
+    spacing: 2,
+    columnas: 30,
+  },
+};
+
+/** Nine-patch marrón [TL,T,TR, L,C,R, BL,B,BR] del bloque que empieza en 396. */
+export const NINE_PATCH_MARRON = {
+  textura: ASSETS.base.clave,
+  frames: [396, 397, 398, 426, 427, 428, 456, 457, 458],
+  celda: 16,
+};
+
+/** Frame del orbe redondo marrón (base de las subacciones). */
+export const ORBE_BASE_FRAME = 667;
+
+/**
+ * Distribución del contenido como fracciones de panel.png (1700×900).
+ * Medidas tomadas de la propia imagen (banda de nombre, recuadro gris, vendas,
+ * divisor central) para que los overlays caigan sobre el dibujo del fondo.
+ */
+export const LAYOUT = {
+  vendaIzq: { x: 0.013, y: 0.0, w: 0.060, h: 0.150 },
+  vendaDer: { x: 0.927, y: 0.0, w: 0.060, h: 0.150 },
+  nombre: { x: 0.127, y: 0.058, w: 0.262, h: 0.078 },
+  foto: { x: 0.047, y: 0.209, w: 0.159, h: 0.351 },
+  barraVida: { x: 0.225, y: 0.235, w: 0.250, h: 0.060 },
+  textoVida: { x: 0.225, y: 0.300, w: 0.250, h: 0.045 },
+  botones: { x: 0.225, y: 0.360, w: 0.250, h: 0.150 },
+  tooltip: { x: 0.047, y: 0.600, w: 0.430, h: 0.330 },
+  statsEfectos: { x: 0.520, y: 0.150, w: 0.215, h: 0.800 },
+  acciones: { x: 0.752, y: 0.150, w: 0.230, h: 0.800 },
+};
+
 export const HEADER = {
   altoFraccion: 0.12,
   flechaAncho: 90,
   flechaAlto: 64,
   cerrarTam: 56,
-  nombreEscala: 4,
-  nombreEstilo: 'naranja',
+  nombreEscala: 3,
+  nombreEstilo: 'panel',
 };
 
 export const LADO_IZQUIERDO = {
@@ -62,17 +114,17 @@ export const LADO_IZQUIERDO = {
   fotoFraccionAlto: 0.5,
   barraVidaAlto: 28,
   gapVerticalEntreBloques: 14,
-  textoVidaEscala: 2.5,
-  textoVidaEstilo: 'naranja',
+  textoVidaEscala: 2,
+  textoVidaEstilo: 'panel',
   tooltipAlto: 132,
-  tooltipPadding: 10,
-  tooltipTextoEscala: 2,
-  tooltipTextoEstilo: 'teal',
+  tooltipPadding: 14,
+  tooltipTextoEscala: 1.5,
+  tooltipTextoEstilo: 'panel',
   tooltipTitulo: 'PASA EL MOUSE SOBRE UNA CUALIDAD',
   botonAlto: 44,
   botonGap: 10,
-  botonTextoEscala: 2,
-  botonTextoEstilo: 'teal',
+  botonTextoEscala: 1.5,
+  botonTextoEstilo: 'panel',
 };
 
 export const LISTAS = {
@@ -82,10 +134,10 @@ export const LISTAS = {
   iconoMarcoTam: 48,
   gapIconoTexto: 10,
   gapNombreCantidad: 14,
-  textoEscala: 2,
-  textoEstilo: 'teal',
-  tituloEscala: 2.5,
-  tituloEstilo: 'naranja',
+  textoEscala: 1.5,
+  textoEstilo: 'panel',
+  tituloEscala: 2,
+  tituloEstilo: 'panel',
   tituloAlto: 36,
   separadorFilasAlpha: 0.18,
   scrollVelocidad: 0.6,

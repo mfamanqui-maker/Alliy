@@ -1,44 +1,29 @@
 /**
  * Ensamblador del panel de detalle de entidad.
  *
- * Uso típico:
- *   import { abrirPanelEntidad, precargarDescripcionesPanelEntidad } from './ui/PanelEntidad';
- *   precargarDescripcionesPanelEntidad(this);  // en preload
- *   const panel = abrirPanelEntidad(scene, opciones);
+ * Skin nuevo:
+ *   - Fondo: panel.png (1700×900) escalado al tamaño del panel. Ya trae las
+ *     vendas rojas, la banda de nombre, el recuadro gris de referencia y el
+ *     divisor central, así que el contenido se superpone alineado por fracciones
+ *     (LAYOUT en panelEntidadConfig).
+ *   - Navegación: vendas rojas de las esquinas (flecha Next al hover).
+ *   - Cierre: tecla Esc o clic fuera del panel (velo). No hay botón X.
  *
- * El panel pausa el input de la escena que se le pase como `escenaAPausar`
- * (por defecto, la escena `tablero` si existe). Al cerrarse, lo restaura.
- *
- * `opciones` shape:
- *   {
- *     nombre,
- *     equipos: { Aliados, Enemigos },
- *     bando,              // 'Aliados' | 'Enemigos'
- *     idActual,
- *     idInicial,
- *     foto,
- *     vida: { vidaActual, vidaMaxima },
- *     estadisticas: [{ imagen, nombre, cantidad }],
- *     efectos:      [{ imagen, nombre, cantidad }],
- *     acciones:     [{ imagen, nombre, cantidad }],
- *     objetos:      [{ imagen, nombre, cantidad }],
- *     movimiento:   [{ imagen, nombre, cantidad }],
- *     onResolverEntidad,  // (id) => { ...opciones para id }
- *     onCerrar,           // hook externo opcional
- *     escenaAPausar,      // Phaser.Scene cuyo input se desactivará
- *   }
+ * `opciones` shape (igual que antes):
+ *   { nombre, equipos, bando, idActual, idInicial, foto, vida,
+ *     estadisticas, efectos, acciones, objetos, movimiento,
+ *     onResolverEntidad, onCerrar, escenaAPausar }
  */
 
 import {
+  ASSETS,
   COLORES,
   DEPTHS,
-  HEADER,
-  LADO_IZQUIERDO,
-  LADO_DERECHO,
+  LAYOUT,
   PANEL,
   DESCRIPCIONES,
 } from './panelEntidadConfig.js';
-import { crearHeader } from './partes/header.js';
+import { crearNombre, crearVendasNavegacion } from './partes/header.js';
 import { crearLadoIzquierdo } from './partes/ladoIzquierdo.js';
 import { crearSeccionEstadisticasEfectos } from './partes/seccionEstadisticasEfectos.js';
 import { crearSeccionAcciones } from './partes/seccionAcciones.js';
@@ -64,6 +49,14 @@ export function abrirPanelEntidad(scene, opciones) {
   const panelX = Math.floor((cam.width - anchoPanel) / 2);
   const panelY = Math.floor((cam.height - altoPanel) / 2);
 
+  /** Convierte una fracción de panel.png a un rect local del container. */
+  const R = (f) => ({
+    x: f.x * anchoPanel,
+    y: f.y * altoPanel,
+    ancho: f.w * anchoPanel,
+    alto: f.h * altoPanel,
+  });
+
   const escenaAPausar = opciones.escenaAPausar ?? scene.scene?.get?.('tablero') ?? null;
   if (escenaAPausar && escenaAPausar.input) {
     escenaAPausar.input.enabled = false;
@@ -74,31 +67,26 @@ export function abrirPanelEntidad(scene, opciones) {
   velo.setDepth(DEPTHS.velo);
   velo.setScrollFactor(0);
   velo.setInteractive({ useHandCursor: false });
-  velo.on('pointerdown', (pointer) => pointer.event?.stopPropagation?.());
 
   const container = scene.add.container(panelX, panelY);
   container.setDepth(DEPTHS.fondo);
   container.setScrollFactor(0);
   container.setSize(anchoPanel, altoPanel);
 
-  const fondo = scene.add.rectangle(0, 0, anchoPanel, altoPanel, COLORES.fondo, COLORES.fondoAlpha);
+  let fondo;
+  if (scene.textures.exists(ASSETS.fondo.clave)) {
+    fondo = scene.add.image(0, 0, ASSETS.fondo.clave);
+    fondo.setDisplaySize(anchoPanel, altoPanel);
+  } else {
+    fondo = scene.add.rectangle(0, 0, anchoPanel, altoPanel, COLORES.fondo, COLORES.fondoAlpha);
+    fondo.setStrokeStyle(COLORES.bordeGrosor, COLORES.borde, 1);
+  }
   fondo.setOrigin(0, 0);
-  fondo.setStrokeStyle(COLORES.bordeGrosor, COLORES.borde, 1);
+  // El fondo absorbe los clics dentro del panel: así un clic en el área vacía
+  // del panel no llega al velo (que cierra al hacer clic fuera).
+  fondo.setInteractive({ useHandCursor: false });
+  fondo.on('pointerdown', (pointer) => pointer.event?.stopPropagation?.());
   container.add(fondo);
-
-  const padding = PANEL.padding;
-  const headerAlto = Math.floor(altoPanel * HEADER.altoFraccion);
-  const cuerpoAncho = anchoPanel - padding * 2;
-  const cuerpoAlto = altoPanel - headerAlto - padding * 2;
-
-  const ladoIzqAncho = Math.floor(cuerpoAncho * LADO_IZQUIERDO.anchoFraccion);
-  const restoAncho = cuerpoAncho - ladoIzqAncho;
-  const mitadIzqAncho = Math.floor(restoAncho * LADO_DERECHO.splitFraccion);
-  const mitadDerAncho = restoAncho - mitadIzqAncho;
-
-  const cuerpoY = padding + headerAlto;
-  const ladoDerX = padding + ladoIzqAncho;
-  const mitadDerX = ladoDerX + mitadIzqAncho;
 
   const estado = {
     idActual: opciones.idActual ?? null,
@@ -119,6 +107,10 @@ export function abrirPanelEntidad(scene, opciones) {
     if (cerrado) return;
     cerrado = true;
     inputsHandle?.desuscribir?.();
+    seccionStats?.destruir?.();
+    seccionAcciones?.destruir?.();
+    seccionStats = null;
+    seccionAcciones = null;
     if (escenaAPausar && escenaAPausar.input) {
       escenaAPausar.input.enabled = true;
     }
@@ -130,24 +122,31 @@ export function abrirPanelEntidad(scene, opciones) {
     if (typeof opciones.onCerrar === 'function') opciones.onCerrar();
   };
 
-  header = crearHeader(scene, {
-    x: padding,
-    y: padding,
-    ancho: cuerpoAncho,
-    alto: headerAlto,
+  velo.on('pointerdown', () => cerrar());
+
+  header = crearNombre(scene, {
+    rect: R(LAYOUT.nombre),
     padre: container,
     nombreInicial: opciones.nombre ?? '',
-    onFlechaIzq: () => navegarMismoBando(-1),
-    onFlechaDer: () => navegarMismoBando(1),
-    onCerrar: () => cerrar(),
+  });
+
+  crearVendasNavegacion(scene, {
+    rectIzq: R(LAYOUT.vendaIzq),
+    rectDer: R(LAYOUT.vendaDer),
+    padre: container,
+    onIzq: () => navegarMismoBando(-1),
+    onDer: () => navegarMismoBando(1),
   });
 
   ladoIzq = crearLadoIzquierdo(scene, {
-    x: padding,
-    y: cuerpoY,
-    ancho: ladoIzqAncho,
-    alto: cuerpoAlto,
     padre: container,
+    rects: {
+      foto: R(LAYOUT.foto),
+      barra: R(LAYOUT.barraVida),
+      textoVida: R(LAYOUT.textoVida),
+      botones: R(LAYOUT.botones),
+      tooltip: R(LAYOUT.tooltip),
+    },
     datosIniciales: {
       foto: opciones.foto,
       vida: opciones.vida,
@@ -163,14 +162,19 @@ export function abrirPanelEntidad(scene, opciones) {
     header.fijarNombre(datos.nombre ?? '');
     ladoIzq.actualizar({ foto: datos.foto, vida: datos.vida });
 
-    if (seccionStats) seccionStats.container.destroy();
-    if (seccionAcciones) seccionAcciones.container.destroy();
+    seccionStats?.destruir?.();
+    seccionAcciones?.destruir?.();
+    seccionStats = null;
+    seccionAcciones = null;
+
+    const rStats = R(LAYOUT.statsEfectos);
+    const rAcc = R(LAYOUT.acciones);
 
     seccionStats = crearSeccionEstadisticasEfectos(scene, {
-      x: ladoDerX,
-      y: cuerpoY,
-      ancho: mitadIzqAncho,
-      alto: cuerpoAlto,
+      x: rStats.x,
+      y: rStats.y,
+      ancho: rStats.ancho,
+      alto: rStats.alto,
       padre: container,
       datos: {
         estadisticas: datos.estadisticas ?? [],
@@ -180,10 +184,10 @@ export function abrirPanelEntidad(scene, opciones) {
     });
 
     seccionAcciones = crearSeccionAcciones(scene, {
-      x: mitadDerX,
-      y: cuerpoY,
-      ancho: mitadDerAncho,
-      alto: cuerpoAlto,
+      x: rAcc.x,
+      y: rAcc.y,
+      ancho: rAcc.ancho,
+      alto: rAcc.alto,
       padre: container,
       datos: {
         acciones: datos.acciones ?? [],
@@ -217,7 +221,7 @@ export function abrirPanelEntidad(scene, opciones) {
         mostrarEntidad(lista[0].id);
       }
       return;
-    };
+    }
     const elegido = lista[nuevoIndex];
     if (elegido) mostrarEntidad(elegido.id);
   }

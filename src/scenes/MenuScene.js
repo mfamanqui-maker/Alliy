@@ -1,12 +1,9 @@
-import { precargarTextoPixel } from './battles/ui/GenerarTexto/index.js';
-
 export default class MenuScene extends Phaser.Scene {
   constructor() {
     super({ key: 'menu' });
   }
   preload() {
     this.load.image('fondo', 'assets/images/system/menu.png');
-    precargarTextoPixel(this, 'teal');
   }
   create() {
     this.add.image(850, 450, 'fondo').setOrigin(0.5).setScale(1.4)

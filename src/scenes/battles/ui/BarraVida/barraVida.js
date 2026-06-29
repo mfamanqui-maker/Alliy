@@ -84,6 +84,68 @@ export function crearBarraVidaRect(scene, opciones = {}) {
 }
 
 /**
+ * Barra de vida por imágenes: dibuja la barra vacía (Barra_de_vida2) de fondo y
+ * revela la barra llena (barraDeVida) recortándola de izquierda a derecha según
+ * la proporción de vida. Ambas comparten forma y tamaño nativos.
+ */
+export function crearBarraVidaImagen(scene, opciones = {}) {
+  const { claveLlena, claveVacia } = opciones;
+  const origen = opciones.origen ?? 0;
+  let vidaMaxima = opciones.vidaMaxima ?? 1;
+  let vidaActual = opciones.vidaActual ?? vidaMaxima;
+
+  if (!claveLlena || !claveVacia || !scene.textures.exists(claveLlena) || !scene.textures.exists(claveVacia)) {
+    return crearBarraVidaRect(scene, {
+      x: opciones.x,
+      y: opciones.y,
+      ancho: opciones.ancho ?? 200,
+      alto: opciones.alto ?? 28,
+      vidaActual,
+      vidaMaxima,
+      origen,
+      depth: opciones.depth,
+    });
+  }
+
+  const fuente = scene.textures.get(claveVacia).getSourceImage();
+  const natW = fuente.width;
+  const natH = fuente.height;
+  const ancho = opciones.ancho ?? natW;
+  const alto = opciones.alto ?? natH;
+
+  const container = scene.add.container(opciones.x ?? 0, opciones.y ?? 0);
+  container.setDepth(opciones.depth ?? 0);
+
+  const baseX = origen === 0.5 ? -ancho / 2 : 0;
+  const baseY = origen === 0.5 ? -alto / 2 : 0;
+
+  const vacia = scene.add.image(baseX, baseY, claveVacia).setOrigin(0, 0);
+  vacia.setDisplaySize(ancho, alto);
+  const llena = scene.add.image(baseX, baseY, claveLlena).setOrigin(0, 0);
+  llena.setDisplaySize(ancho, alto);
+  container.add([vacia, llena]);
+
+  const actualizar = () => {
+    const t = ratioVida(vidaActual, vidaMaxima);
+    const recorte = natW * t;
+    llena.setCrop(0, 0, recorte, natH);
+    llena.setVisible(recorte > 0.5);
+  };
+  actualizar();
+
+  container.actualizarVida = (nuevaActual, nuevaMaxima) => {
+    if (nuevaMaxima != null) vidaMaxima = nuevaMaxima;
+    if (nuevaActual != null) vidaActual = nuevaActual;
+    actualizar();
+    return container;
+  };
+  container.obtenerVida = () => ({ vidaActual, vidaMaxima });
+  container.lleno = llena;
+  container.vacio = vacia;
+  return container;
+}
+
+/**
  * Crea una barra de vida con fondo barraDeVida.png y relleno rojo proporcional.
  */
 export function crearBarraVida(scene, opciones) {

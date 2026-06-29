@@ -44,23 +44,26 @@ export function crearFilaItem(scene, opciones) {
   separador.setOrigin(0, 0);
   container.add(separador);
 
+  const tieneIcono = Boolean(item?.imagen);
   const marcoTam = LISTAS.iconoMarcoTam;
   const marcoX = paddingX;
   const marcoY = (altoFila - marcoTam) / 2;
-  const marco = scene.add.rectangle(marcoX, marcoY, marcoTam, marcoTam, COLORES.iconoMarcoVacio, 1);
-  marco.setOrigin(0, 0);
-  marco.setStrokeStyle(2, COLORES.borde, 0.7);
-  container.add(marco);
 
-  let iconoImg = null;
-  cargarImagen(scene, item?.imagen, (clave) => {
-    iconoImg = scene.add.image(marcoX + marcoTam / 2, marcoY + marcoTam / 2, clave);
-    iconoImg.setDisplaySize(LISTAS.iconoTam, LISTAS.iconoTam);
-    iconoImg.setDepth(DEPTHS.contenido + 2);
-    container.add(iconoImg);
-  });
+  if (tieneIcono) {
+    const marco = scene.add.rectangle(marcoX, marcoY, marcoTam, marcoTam, COLORES.iconoMarcoVacio, 1);
+    marco.setOrigin(0, 0);
+    marco.setStrokeStyle(2, COLORES.borde, 0.7);
+    container.add(marco);
 
-  const textoX = marcoX + marcoTam + LISTAS.gapIconoTexto;
+    cargarImagen(scene, item.imagen, (clave) => {
+      const iconoImg = scene.add.image(marcoX + marcoTam / 2, marcoY + marcoTam / 2, clave);
+      iconoImg.setDisplaySize(LISTAS.iconoTam, LISTAS.iconoTam);
+      iconoImg.setDepth(DEPTHS.contenido + 2);
+      container.add(iconoImg);
+    });
+  }
+
+  const textoX = tieneIcono ? marcoX + marcoTam + LISTAS.gapIconoTexto : paddingX;
   const nombre = crearTexto(scene, String(item?.nombre ?? ''), {
     x: textoX,
     y: altoFila / 2,

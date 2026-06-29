@@ -36,7 +36,7 @@ export default class tablero {
     let busqueda = { x: null, y: null };
     for (let y = 0; y < arrayBidimencional.length; y++) {
       for (let x = 0; x < arrayBidimencional[y].length; x++) {
-        if (arrayBidimencional[y][x].entidad === id) {
+        if (tablero._obtenerIdEntidad(arrayBidimencional[y][x].entidad) === tablero._normalizarId(id)) {
           busqueda.x = x + 1;
           busqueda.y = y + 1;
           return busqueda;
@@ -44,6 +44,71 @@ export default class tablero {
       }
     }
     return console.error(`No se encontró la entidad con id ${id} en el tablero.`);
+  }
+
+  static _normalizarId(id) {
+    if (id == null || id === '') return null;
+    const numero = Number(id);
+    return Number.isNaN(numero) ? String(id) : numero;
+  }
+
+  static _obtenerIdEntidad(entidad) {
+    if (!entidad || entidad === false) return null;
+    return tablero._normalizarId(
+      entidad?.data?.id ??
+      entidad?.datos?.id ??
+      entidad?.aliadoEspecifico?.datos?.id ??
+      entidad?.enemigoEspecifico?.datos?.id ??
+      entidad?.id ??
+      entidad
+    );
+  }
+
+  static _obtenerEspecificoEntidad(entidad) {
+    return entidad?.aliadoEspecifico ??
+      entidad?.enemigoEspecifico ??
+      (typeof entidad?.ubicarEnCasillaAsync === 'function' ? entidad : null);
+  }
+
+  static _actualizarPosicionEntidad(entidad, coordenadas) {
+    if (entidad?.data) entidad.data.posicion = { x: coordenadas.x, y: coordenadas.y };
+    if (entidad?.datos) entidad.datos.posicion = { x: coordenadas.x, y: coordenadas.y };
+    if (entidad?.aliadoEspecifico?.datos) entidad.aliadoEspecifico.datos.posicion = { x: coordenadas.x, y: coordenadas.y };
+    if (entidad?.enemigoEspecifico?.datos) entidad.enemigoEspecifico.datos.posicion = { x: coordenadas.x, y: coordenadas.y };
+  }
+
+  static moverEntidad(entidad, coordenadas, arrayBidimencional, escenaTablero = null) { //mueve una entidad a una nueva posición en el tablero
+    if (!entidad || !coordenadas || !arrayBidimencional) return false;
+
+    const idEntidad = tablero._obtenerIdEntidad(entidad);
+    const viejaPosicion = tablero.buscarEntidadPorId(idEntidad, arrayBidimencional);
+    if (!viejaPosicion?.x || !viejaPosicion?.y) return false;
+
+    const origen = arrayBidimencional[viejaPosicion.y - 1]?.[viejaPosicion.x - 1];
+    const destino = arrayBidimencional[coordenadas.y - 1]?.[coordenadas.x - 1];
+
+    if (!origen || !destino) return false;
+    if (destino.entidad && destino.entidad !== false) return false;
+
+    const entidadMovida = origen.entidad && origen.entidad !== false ? origen.entidad : entidad;
+    origen.entidad = false;
+    destino.entidad = entidadMovida;
+
+    tablero._actualizarPosicionEntidad(entidadMovida, coordenadas);
+    if (entidadMovida !== entidad) tablero._actualizarPosicionEntidad(entidad, coordenadas);
+
+    const especifico = tablero._obtenerEspecificoEntidad(entidadMovida) ?? tablero._obtenerEspecificoEntidad(entidad);
+    const escena = escenaTablero ?? entidadMovida?.moldePhaser?.obtenerEscenaTablero?.();
+    if (especifico?.ubicarEnCasillaAsync && escena) {
+      return especifico.ubicarEnCasillaAsync(escena, {
+        col: coordenadas.x,
+        fila: coordenadas.y,
+        tamanoCasilla: escena.tileSize,
+        orientacion: entidadMovida?.enemigoEspecifico ? 'izquierda' : 'derecha',
+      }).then(() => true);
+    }
+
+    return true;
   }
 
   static calcularDistancia(idInicio, idDestino, arrayBidimencional) { //las entidades deben recibir ids que deben estar en el tablero

@@ -205,3 +205,4 @@ export default class entidadScene extends Phaser.Scene {
     this._precargarIconosAcciones();
   }
 }
+console.log(41);
